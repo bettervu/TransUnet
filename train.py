@@ -107,8 +107,8 @@ loss = history.history["loss"]
 val_loss = history.history["val_loss"]
 
 df = pd.DataFrame(iou)
-df.columns = ["iou"]
-df["val_iou"] = val_iou
+df.columns = ["mean_iou"]
+df["val_mean_iou"] = val_iou
 df["loss"] = loss
 df["val_loss"] = val_loss
 
