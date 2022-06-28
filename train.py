@@ -30,6 +30,7 @@ parser.add_argument("--monitor", type=str, default="val_loss")
 parser.add_argument("--lr", type=float, default=0.005)
 parser.add_argument("--batch_size", type=int, default=12)
 parser.add_argument("--patience", type=int, default=12)
+parser.add_argument("--epochs", type=int, default=25)
 parser.add_argument("--save_path", type=str, default="weights")
 
 args, _ = parser.parse_known_args()
@@ -85,7 +86,7 @@ tensorboard_path = os.path.join(env.paths.remote, "dTurk", "logs", f"{args_dict[
 tensorboard = TensorBoard(tensorboard_path, histogram_freq=1)
 callbacks.append(tensorboard)
 
-history = network.model.fit(train_ds_batched, epochs=2, validation_data=val_ds_batched, callbacks=[callbacks])
+history = network.model.fit(train_ds_batched, epochs=args_dict["epochs"], validation_data=val_ds_batched, callbacks=[callbacks])
 
 iou = history.history["primary_mean_iou"]
 val_iou = history.history["primary_mean_iou"]
