@@ -6,7 +6,7 @@ import TransUnet.experiments.config as conf
 from dTurk.utils.clr_callback import CyclicLR
 import TransUnet.models.transunet as transunet
 from tensorflow.keras.callbacks import TensorBoard, EarlyStopping
-from train_helpers import get_loss, iou, oversampling, create_dataset
+from train_helpers import dice_loss, iou, oversampling, create_dataset
 
 env = Environment()
 
@@ -28,7 +28,7 @@ parser.add_argument("--train_augmentation_file", type=str, default=None)
 parser.add_argument("--val_augmentation_file", type=str, default=None)
 parser.add_argument("--monitor", type=str, default="val_loss")
 parser.add_argument("--lr", type=float, default=0.005)
-parser.add_argument("--batch_size", type=int, default=12)
+parser.add_argument("--batch_size", type=int, default=32)
 parser.add_argument("--patience", type=int, default=12)
 parser.add_argument("--epochs", type=int, default=25)
 parser.add_argument("--save_path", type=str, default="weights")
@@ -59,7 +59,7 @@ train_ds_batched, val_ds_batched = create_dataset(
 step_size = int(2.0 * len(train_input_names) / args_dict["batch_size"])
 network = transunet.TransUnet(config, trainable=False)
 
-network.model.compile(optimizer="adam", loss=get_loss(args_dict["loss"]), metrics=iou())
+network.model.compile(optimizer="adam", loss=dice_loss, metrics=iou())
 
 callbacks = []
 cyclic_lr = CyclicLR(

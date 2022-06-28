@@ -3,34 +3,18 @@ import pickle
 import imageio
 import numpy as np
 from tqdm import tqdm
+import tensorflow as tf
 from dTurk.generators import SemsegData
 from dTurk.builders import model_builder
 from dTurk.metrics import MeanIoU, WeightedMeanIoU
 from dTurk.augmentation.transforms import get_train_transform_policy, get_validation_transform_policy
-from dTurk.models.sm_models.losses import CategoricalCELoss, CategoricalFocalLoss, DiceLoss, JaccardLoss
 
-
-def get_loss(loss_name: str):
-    name = loss_name.lower()
-
-    class_weights = [1, 1, 1]
-    class_indexes = [0, 1, 2]
-
-    if name == "weighted_categorical_cross_entropy":
-        loss_function = CategoricalCELoss(class_weights=class_weights, class_indexes=class_indexes)
-    elif name in ["iou", "jaccard"]:
-        loss_function = JaccardLoss(class_weights=class_weights, class_indexes=class_indexes, per_image=False)
-    elif name in ["dice", "f1"]:
-        loss_function = DiceLoss(class_weights=class_weights, class_indexes=class_indexes, per_image=False)
-    elif name in ["focal_dice"]:
-        dice_loss = DiceLoss(class_weights=class_weights, class_indexes=class_indexes, per_image=False)
-        focal_loss = CategoricalFocalLoss(alpha=0.25, gamma=2, class_indexes=class_indexes)
-        loss_function = dice_loss + focal_loss
-    elif name in ["focal_iou"]:
-        iou_loss = JaccardLoss(class_weights=class_weights, class_indexes=class_indexes, per_image=False)
-        focal_loss = CategoricalFocalLoss(alpha=0.25, gamma=2, class_indexes=class_indexes)
-        loss_function = iou_loss + focal_loss
-    return loss_function
+def dice_loss(y_true, y_pred):
+     y_true = tf.cast(y_true, tf.float32)
+     y_pred = tf.math.sigmoid(y_pred)
+     numerator = 2 * tf.reduce_sum(y_true * y_pred)
+     denominator = tf.reduce_sum(y_true + y_pred)
+     return 1 - numerator / denominator
 
 def iou():
     class_weights_primary = np.array([0,0,1])
