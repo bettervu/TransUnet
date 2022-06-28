@@ -7,7 +7,7 @@ import TransUnet.experiments.config as conf
 from dTurk.utils.clr_callback import CyclicLR
 import TransUnet.models.transunet as transunet
 from tensorflow.keras.callbacks import TensorBoard, EarlyStopping
-from train_helpers import dice_loss, iou, oversampling, create_dataset
+from train_helpers import dice_loss, mean_iou, oversampling, create_dataset
 
 env = Environment()
 
@@ -47,8 +47,11 @@ else:
 
 config["n_layers"] = args_dict["n_layers"]
 
-gpus = tf.config.list_physical_devices('GPU')
-tf.config.set_visible_devices(gpus[args_dict["gpu"]], 'GPU')
+try:
+    gpus = tf.config.list_physical_devices("GPU")
+    tf.config.set_visible_devices(gpus[args_dict["gpu"]], "GPU")
+except:
+    print("Gpus not found")
 
 train_input_names = [
     dataset_directory + "/train_labels/" + i
@@ -67,7 +70,7 @@ train_ds_batched, val_ds_batched = create_dataset(
 step_size = int(2.0 * len(train_input_names) / args_dict["batch_size"])
 network = transunet.TransUnet(config, trainable=False)
 
-network.model.compile(optimizer="adam", loss=dice_loss, metrics=iou())
+network.model.compile(optimizer="adam", loss=dice_loss, metrics=mean_iou)
 
 callbacks = []
 cyclic_lr = CyclicLR(
@@ -94,7 +97,9 @@ tensorboard_path = os.path.join(env.paths.remote, "dTurk", "logs", f"{args_dict[
 tensorboard = TensorBoard(tensorboard_path, histogram_freq=1)
 callbacks.append(tensorboard)
 
-history = network.model.fit(train_ds_batched, epochs=args_dict["epochs"], validation_data=val_ds_batched, callbacks=[callbacks])
+history = network.model.fit(
+    train_ds_batched, epochs=args_dict["epochs"], validation_data=val_ds_batched, callbacks=[callbacks]
+)
 
 iou = history.history["primary_mean_iou"]
 val_iou = history.history["primary_mean_iou"]
