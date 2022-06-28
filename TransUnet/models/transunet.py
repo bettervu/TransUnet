@@ -1,9 +1,9 @@
-import models.encoder_layers as encoder_layers
-import models.decoder_layers as decoder_layers
-from models.resnet_v2 import ResNetV2
+import TransUnet.models.encoder_layers as encoder_layers
+import TransUnet.models.decoder_layers as decoder_layers
+from TransUnet.models.resnet_v2 import ResNetV2
 import tensorflow_addons as tfa
 import matplotlib.pyplot as plt
-import models.utils as utils
+import TransUnet.models.utils as utils
 import tensorflow as tf
 import math
 

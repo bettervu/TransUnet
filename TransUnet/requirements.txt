@@ -1,10 +1,5 @@
 ml-collections
-tensorflow-addons
-opencv-python
+focal-loss
 validators
-tensorflow 
 SimpleITK
 medpy
-numpy 
-scipy
-tqdm

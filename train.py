@@ -1,0 +1,105 @@
+import os
+import argparse
+import pandas as pd
+from bp import Environment
+import TransUnet.experiments.config as conf
+from dTurk.utils.clr_callback import CyclicLR
+import TransUnet.models.transunet as transunet
+from tensorflow.keras.callbacks import TensorBoard, EarlyStopping
+from train_helpers import get_loss, iou, oversampling, create_dataset
+
+env = Environment()
+
+config = conf.get_transunet()
+config["image_size"] = 256
+config["filters"] = 3
+config["n_skip"] = 3
+config["decoder_channels"] = [128, 64, 32, 16]
+config["resnet"]["n_layers"] = (3, 4, 9, 12)
+config["dropout"] = 0.1
+config["grid"] = (28, 28)
+
+parser = argparse.ArgumentParser(description="TransUNet")
+parser.add_argument("dataset")
+parser.add_argument("log", type=str)
+parser.add_argument("--machine", type=str, default="local")
+parser.add_argument("--loss", type=str, default="iou")
+parser.add_argument("--train_augmentation_file", type=str, default=None)
+parser.add_argument("--val_augmentation_file", type=str, default=None)
+parser.add_argument("--monitor", type=str, default="val_loss")
+parser.add_argument("--lr", type=float, default=0.005)
+parser.add_argument("--batch_size", type=int, default=12)
+parser.add_argument("--patience", type=int, default=12)
+parser.add_argument("--save_path", type=str, default="weights")
+
+args, _ = parser.parse_known_args()
+args_dict = vars(args)
+args_dict["checkpoint_filepath"] = args_dict["save_path"] + "/checkpoint/"
+
+if args_dict["machine"] == "local":
+    dataset_directory = os.environ.get("BP_PATH_REMOTE") + "/datasets/semseg_base" + "/" + args_dict["dataset"]
+else:
+    dataset_directory = "/home/bv/" + "datasets/semseg_base" + "/" + args_dict["dataset"]
+
+train_input_names = [
+    dataset_directory + "/train_labels/" + i
+    for i in os.listdir(dataset_directory + "/train_labels/")
+    if i.endswith(".png")
+]
+val_input_names = [
+    dataset_directory + "/val/" + i for i in os.listdir(dataset_directory + "/val/") if i.endswith(".png")
+]
+
+train_input_names = oversampling(train_input_names, args_dict["machine"], args_dict["dataset"], -1)
+train_ds_batched, val_ds_batched = create_dataset(
+    train_input_names, val_input_names, train_augmentation=args_dict["train_augmentation_file"]
+)
+
+step_size = int(2.0 * len(train_input_names) / args_dict["batch_size"])
+network = transunet.TransUnet(config, trainable=False)
+
+network.model.compile(optimizer="adam", loss=get_loss(args_dict["loss"]), metrics=iou())
+
+callbacks = []
+cyclic_lr = CyclicLR(
+    base_lr=args_dict["lr"] / 10.0,
+    max_lr=args_dict["lr"],
+    step_size=step_size,
+    mode="triangular2",
+    cyclic_momentum=False,
+    max_momentum=False,
+    base_momentum=0.8,
+)
+callbacks.append(cyclic_lr)
+
+early_stopping = EarlyStopping(
+    monitor=args_dict["monitor"],
+    mode="min" if "loss" in args_dict["monitor"] else "max",
+    patience=args_dict["patience"],
+    verbose=1,
+    restore_best_weights=True,
+)
+callbacks.append(early_stopping)
+
+tensorboard_path = os.path.join(env.paths.remote, "dTurk", "logs", f"{args_dict['log']}", "tensorboard")
+tensorboard = TensorBoard(tensorboard_path, histogram_freq=1)
+callbacks.append(tensorboard)
+
+history = network.model.fit(train_ds_batched, epochs=2, validation_data=val_ds_batched, callbacks=[callbacks])
+
+iou = history.history["primary_mean_iou"]
+val_iou = history.history["primary_mean_iou"]
+loss = history.history["loss"]
+val_loss = history.history["val_loss"]
+
+df = pd.DataFrame(iou)
+df.columns = ["iou"]
+df["val_iou"] = val_iou
+df["loss"] = loss
+df["val_loss"] = val_loss
+
+df.to_csv("logs.csv")
+
+network.model.load_weights(args_dict["checkpoint_filepath"])
+saved_model_path = args_dict["save_path"] + "/model"
+network.model.save(saved_model_path)
