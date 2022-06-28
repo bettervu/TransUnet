@@ -1,6 +1,7 @@
 import os
 import argparse
 import pandas as pd
+import tensorflow as tf
 from bp import Environment
 import TransUnet.experiments.config as conf
 from dTurk.utils.clr_callback import CyclicLR
@@ -22,6 +23,7 @@ config["grid"] = (28, 28)
 parser = argparse.ArgumentParser(description="TransUNet")
 parser.add_argument("dataset")
 parser.add_argument("log", type=str)
+parser.add_argument("gpu", type=int)
 parser.add_argument("--machine", type=str, default="local")
 parser.add_argument("--loss", type=str, default="iou")
 parser.add_argument("--train_augmentation_file", type=str, default=None)
@@ -32,6 +34,7 @@ parser.add_argument("--batch_size", type=int, default=32)
 parser.add_argument("--patience", type=int, default=12)
 parser.add_argument("--epochs", type=int, default=25)
 parser.add_argument("--save_path", type=str, default="weights")
+parser.add_argument("--n_layers", type=int, default=12)
 
 args, _ = parser.parse_known_args()
 args_dict = vars(args)
@@ -41,6 +44,11 @@ if args_dict["machine"] == "local":
     dataset_directory = os.environ.get("BP_PATH_REMOTE") + "/datasets/semseg_base" + "/" + args_dict["dataset"]
 else:
     dataset_directory = "/home/bv/" + "datasets/semseg_base" + "/" + args_dict["dataset"]
+
+config["n_layers"] = args_dict["n_layers"]
+
+gpus = tf.config.list_physical_devices('GPU')
+tf.config.set_visible_devices(gpus[args_dict["gpu"]], 'GPU')
 
 train_input_names = [
     dataset_directory + "/train_labels/" + i
