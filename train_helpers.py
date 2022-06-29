@@ -140,7 +140,7 @@ def _do_oversampling(train_labels, machine, dataset):
     if os.path.exists(os.path.join(data_dir(machine, dataset=dataset), "semseg_slice_tag.pickle")):
         _using_slice_tag(
             malady_layer_dict,
-            train_labels,
+            train_labels[0],
             machine=machine,
             dataset=dataset,
             split_files=split_files,
