@@ -32,7 +32,7 @@ parser.add_argument("--monitor", type=str, default="val_loss")
 parser.add_argument("--lr", type=float, default=0.005)
 parser.add_argument("--batch_size", type=int, default=32)
 parser.add_argument("--patience", type=int, default=6)
-parser.add_argument("--epochs", type=int, default=25)
+parser.add_argument("--epochs", type=int, default=100)
 parser.add_argument("--save_path", type=str, default="weights")
 parser.add_argument("--n_layers", type=int, default=12)
 
@@ -94,13 +94,12 @@ early_stopping = EarlyStopping(
 )
 callbacks.append(early_stopping)
 
-checkpoint_path = args_dict["checkpoint_filepath"]+"/cp-{epoch:04d}.ckpt"
 cp_callback = tf.keras.callbacks.ModelCheckpoint(
-    filepath=checkpoint_path,
-    verbose=1,
-    save_weights_only=True,
-    save_freq=5*args_dict["batch_size"]
-)
+            filepath=args_dict["checkpoint_filepath"],
+            save_weights_only=True,
+            monitor='val_loss',
+            mode='min',
+            save_best_only=True)
 callbacks.append(cp_callback)
 
 tensorboard_path = os.path.join(env.paths.remote, "dTurk", "logs", f"{args_dict['log']}", "tensorboard")
@@ -126,4 +125,4 @@ df.to_csv("logs.csv")
 
 network.model.load_weights(args_dict["checkpoint_filepath"])
 saved_model_path = args_dict["save_path"] + "/model"
-network.model.save_model(saved_model_path)
+network.model.save(saved_model_path)
