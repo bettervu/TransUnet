@@ -10,7 +10,7 @@ from train_helpers import mean_iou, oversampling, create_dataset
 
 import dTurk.models.sm_models as sm
 from dTurk.models.SM_UNet import SM_UNet_Builder
-from dTurk.models.sm_models.losses import DiceLoss
+from focal_loss import BinaryFocalLoss
 
 env = Environment()
 
@@ -77,13 +77,7 @@ builder = SM_UNet_Builder(
 
 model = builder.build_model()
 
-def get_loss():
-    class_weights = [1,1,1]
-    class_indexes = [0,1,2]
-    loss_function = DiceLoss(class_weights=class_weights, class_indexes=class_indexes, per_image=False)
-    return loss_function
-
-model.compile(optimizer="adam", loss=get_loss(), metrics=mean_iou)
+model.compile(optimizer="adam", loss=BinaryFocalLoss(gamma=2), metrics=mean_iou)
 
 callbacks = []
 cyclic_lr = CyclicLR(
