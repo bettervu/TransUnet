@@ -9,6 +9,7 @@ import TransUnet.models.transunet as transunet
 from tensorflow.keras.callbacks import TensorBoard, EarlyStopping
 from train_helpers import dice_loss, mean_iou, oversampling, create_dataset
 from dTurk.models.sm_models.losses import DiceLoss
+from focal_loss import BinaryFocalLoss
 
 env = Environment()
 
@@ -78,7 +79,7 @@ def get_loss():
     loss_function = DiceLoss(class_weights=class_weights, class_indexes=class_indexes, per_image=False)
     return loss_function
 
-network.model.compile(optimizer="adam", loss=get_loss(), metrics=mean_iou)
+network.model.compile(optimizer="adam", loss=BinaryFocalLoss(gamma=2), metrics=mean_iou)
 
 callbacks = []
 cyclic_lr = CyclicLR(
