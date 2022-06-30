@@ -8,6 +8,7 @@ from dTurk.utils.clr_callback import CyclicLR
 import TransUnet.models.transunet as transunet
 from tensorflow.keras.callbacks import TensorBoard, EarlyStopping
 from train_helpers import dice_loss, mean_iou, oversampling, create_dataset
+from dTurk.models.sm_models.losses import DiceLoss
 
 env = Environment()
 
@@ -71,7 +72,13 @@ train_ds_batched, val_ds_batched = create_dataset(
 step_size = int(2.0 * len(train_input_names) / args_dict["batch_size"])
 network = transunet.TransUnet(config, trainable=False)
 
-network.model.compile(optimizer="adam", loss=dice_loss, metrics=mean_iou)
+def get_loss():
+    class_weights = [1,1,1]
+    class_indexes = [0,1,2]
+    loss_function = DiceLoss(class_weights=class_weights, class_indexes=class_indexes, per_image=False)
+    return loss_function
+
+network.model.compile(optimizer="adam", loss=get_loss(), metrics=mean_iou)
 
 callbacks = []
 cyclic_lr = CyclicLR(
