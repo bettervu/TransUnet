@@ -54,8 +54,12 @@ class TransUnet():
                 
             else:
                 resnet50v2, features = self.resnet_embeddings(x)
-                y = resnet50v2.get_layer("conv4_block6_preact_relu").output
-                x = resnet50v2.input
+                # y = resnet50v2.get_layer("conv4_block6_preact_relu").output
+                # x = resnet50v2.input
+                efficientnetv2, features = self.efficientnet_embeddings(x)
+                y = efficientnetv2.get_layer("block4a_dwconv2").output
+                x = efficientnetv2.input
+
         else:
             y = x
             features = None
@@ -232,12 +236,34 @@ class TransUnet():
         layers = ["conv3_block4_preact_relu",
                   "conv2_block3_preact_relu",
                   "conv1_conv"]
+        print(resnet50v2.summary())
 
         features = []
         if self.config.n_skip > 0:
             for l in layers:
                 features.append(resnet50v2.get_layer(l).output)
         return resnet50v2, features
+
+    def efficientnet_embeddings(self, x):
+        efficientnetv2 = tf.keras.applications.efficientnet_v2.EfficientNetV2L(
+                        include_top=False,
+                        weights='imagenet',
+                        input_shape=(self.image_size, self.image_size, 3),
+                        include_preprocessing=True
+                    )
+        efficientnetv2.trainable = False
+        print(efficientnetv2.summary())
+        _ = efficientnetv2(x)
+        layers = ["block3b_expand_conv",
+                  "block2b_expand_conv",
+                  "stem_conv",
+                  ]
+
+        features = []
+        if self.config.n_skip > 0:
+            for l in layers:
+                features.append(efficientnetv2.get_layer(l).output)
+        return efficientnetv2, features
 
     def save_model_tpu(self, saved_model_path):
         save_options = tf.saved_model.SaveOptions(
