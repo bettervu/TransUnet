@@ -31,7 +31,7 @@ parser.add_argument("--val_augmentation_file", type=str, default=None)
 parser.add_argument("--monitor", type=str, default="val_loss")
 parser.add_argument("--lr", type=float, default=0.005)
 parser.add_argument("--batch_size", type=int, default=32)
-parser.add_argument("--patience", type=int, default=12)
+parser.add_argument("--patience", type=int, default=6)
 parser.add_argument("--epochs", type=int, default=25)
 parser.add_argument("--save_path", type=str, default="weights")
 parser.add_argument("--n_layers", type=int, default=12)
@@ -52,6 +52,7 @@ try:
     tf.config.set_visible_devices(gpus[args_dict["gpu"]], "GPU")
 except:
     print("Gpus not found")
+
 
 train_input_names = [
     dataset_directory + "/train_labels/" + i
@@ -93,6 +94,15 @@ early_stopping = EarlyStopping(
 )
 callbacks.append(early_stopping)
 
+checkpoint_path = args_dict["checkpoint_filepath"]+"/cp-{epoch:04d}.ckpt"
+cp_callback = tf.keras.callbacks.ModelCheckpoint(
+    filepath=checkpoint_path,
+    verbose=1,
+    save_weights_only=True,
+    save_freq=5*args_dict["batch_size"]
+)
+callbacks.append(cp_callback)
+
 tensorboard_path = os.path.join(env.paths.remote, "dTurk", "logs", f"{args_dict['log']}", "tensorboard")
 tensorboard = TensorBoard(tensorboard_path, histogram_freq=1)
 callbacks.append(tensorboard)
@@ -101,8 +111,8 @@ history = network.model.fit(
     train_ds_batched, epochs=args_dict["epochs"], validation_data=val_ds_batched, callbacks=[callbacks]
 )
 
-iou = history.history["primary_mean_iou"]
-val_iou = history.history["primary_mean_iou"]
+iou = history.history["mean_iou"]
+val_iou = history.history["val_mean_iou"]
 loss = history.history["loss"]
 val_loss = history.history["val_loss"]
 
@@ -116,4 +126,4 @@ df.to_csv("logs.csv")
 
 network.model.load_weights(args_dict["checkpoint_filepath"])
 saved_model_path = args_dict["save_path"] + "/model"
-network.model.save(saved_model_path)
+network.model.save_model(saved_model_path)
