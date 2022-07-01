@@ -236,7 +236,6 @@ class TransUnet():
         layers = ["conv3_block4_preact_relu",
                   "conv2_block3_preact_relu",
                   "conv1_conv"]
-        print(resnet50v2.summary())
 
         features = []
         if self.config.n_skip > 0:
