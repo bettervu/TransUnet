@@ -67,8 +67,8 @@ class TransUnet():
 
         y = tfkl.Conv2D(
             filters=self.hidden_size,
-            kernel_size=2,
-            strides=2,
+            kernel_size=1,
+            strides=1,
             padding="valid",
             name="embedding",
             trainable=self.trainable
