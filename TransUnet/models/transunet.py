@@ -53,10 +53,11 @@ class TransUnet():
                 y, features = self.resnet50v2(x)
                 
             else:
-                resnet50v2, features = self.resnet_embeddings(x)
+                # resnet50v2, features = self.resnet_embeddings(x)
                 # y = resnet50v2.get_layer("conv4_block6_preact_relu").output
                 # x = resnet50v2.input
                 efficientnetv2, features = self.efficientnet_embeddings(x)
+                print(efficientnetv2.summary())
                 y = efficientnetv2.get_layer("block4a_dwconv2").output
                 x = efficientnetv2.input
 
@@ -66,8 +67,8 @@ class TransUnet():
 
         y = tfkl.Conv2D(
             filters=self.hidden_size,
-            kernel_size=self.patch_size,
-            strides=self.patch_size,
+            kernel_size=2,
+            strides=2,
             padding="valid",
             name="embedding",
             trainable=self.trainable
@@ -252,7 +253,6 @@ class TransUnet():
                         include_preprocessing=True
                     )
         efficientnetv2.trainable = False
-        print(efficientnetv2.summary())
         _ = efficientnetv2(x)
         layers = ["block3b_expand_conv",
                   "block2b_expand_conv",
