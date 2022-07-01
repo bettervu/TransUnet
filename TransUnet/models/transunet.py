@@ -57,7 +57,6 @@ class TransUnet():
                 # y = resnet50v2.get_layer("conv4_block6_preact_relu").output
                 # x = resnet50v2.input
                 efficientnetv2, features = self.efficientnet_embeddings(x)
-                print(efficientnetv2.summary())
                 y = efficientnetv2.get_layer("block4a_dwconv2").output
                 x = efficientnetv2.input
 
@@ -67,8 +66,8 @@ class TransUnet():
 
         y = tfkl.Conv2D(
             filters=self.hidden_size,
-            kernel_size=1,
-            strides=1,
+            kernel_size=self.patch_size,
+            strides=self.patch_size,
             padding="valid",
             name="embedding",
             trainable=self.trainable

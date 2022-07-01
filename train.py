@@ -73,13 +73,30 @@ train_ds_batched, val_ds_batched = create_dataset(
 step_size = int(2.0 * len(train_input_names) / args_dict["batch_size"])
 network = transunet.TransUnet(config, trainable=False)
 
-def get_loss():
-    class_weights = [1,1,1]
-    class_indexes = [0,1,2]
-    loss_function = DiceLoss(class_weights=class_weights, class_indexes=class_indexes, per_image=False)
-    return loss_function
 
-network.model.compile(optimizer="adam", loss=BinaryFocalLoss(gamma=2), metrics=mean_iou)
+def dice_per_class(y_true, y_pred, eps=1e-5):
+    intersect = tf.reduce_sum(y_true * y_pred)
+    y_sum = tf.reduce_sum(y_true * y_true)
+    z_sum = tf.reduce_sum(y_pred * y_pred)
+    loss = 1 - (2 * intersect + eps) / (z_sum + y_sum + eps)
+    return loss
+
+def gen_dice(y_true, y_pred):
+    """both tensors are [b, h, w, classes] and y_pred is in logit form"""
+    # [b, h, w, classes]
+    pred_tensor = tf.nn.softmax(y_pred)
+    loss = 0.0
+    for c in range(3):
+        loss += dice_per_class(y_true[:, :, :, c], pred_tensor[:, :, :, c])
+    return loss / 3
+
+def segmentation_loss(y_true, y_pred):
+    cce = tf.keras.losses.CategoricalCrossentropy(from_logits=True)
+    cross_entropy_loss = cce(y_true=y_true, y_pred=y_pred)
+    dice_loss = gen_dice(y_true, y_pred)
+    return 0.5 * cross_entropy_loss + 0.5 * dice_loss
+
+network.model.compile(optimizer="adam", loss=segmentation_loss, metrics=mean_iou)
 
 callbacks = []
 cyclic_lr = CyclicLR(
