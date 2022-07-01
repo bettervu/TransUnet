@@ -53,12 +53,12 @@ class TransUnet():
                 y, features = self.resnet50v2(x)
                 
             else:
-                # resnet50v2, features = self.resnet_embeddings(x)
-                # y = resnet50v2.get_layer("conv4_block6_preact_relu").output
-                # x = resnet50v2.input
-                efficientnetv2, features = self.efficientnet_embeddings(x)
-                y = efficientnetv2.get_layer("block4a_dwconv2").output
-                x = efficientnetv2.input
+                resnet50v2, features = self.resnet_embeddings(x)
+                y = resnet50v2.get_layer("conv4_block6_preact_relu").output
+                x = resnet50v2.input
+                # efficientnetv2, features = self.efficientnet_embeddings(x)
+                # y = efficientnetv2.get_layer("block4a_dwconv2").output
+                # x = efficientnetv2.input
 
         else:
             y = x
