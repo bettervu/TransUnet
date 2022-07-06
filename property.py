@@ -147,6 +147,20 @@ config['dropout'] = 0.1
 config['grid'] = (28,28)
 config["n_layers"] = 12
 
+builder = SM_UNet_Builder(
+    encoder_name='efficientnetv2-l',
+    input_shape=(256, 256, 3),
+    num_classes=1,
+    activation="softmax",
+    train_encoder=False,
+    encoder_weights="imagenet",
+    decoder_block_type="upsampling",
+    head_dropout=0,  # dropout at head
+    dropout=0,  # dropout at feature extraction
+)
+model = builder.build_model()
+model.compile(optimizer="adam", loss=BinaryFocalLoss(gamma=2), metrics=mean_iou)
+
 network = transunet.TransUnet(config, trainable=False)
 network.model.compile(optimizer="adam", loss=BinaryFocalLoss(gamma=2), metrics=mean_iou)
 
@@ -180,7 +194,7 @@ cp_callback = tf.keras.callbacks.ModelCheckpoint(
             save_best_only=True)
 callbacks.append(cp_callback)
 
-history = network.model.fit(
+history = model.fit(
     train_ds, epochs=100, validation_data=val_ds, callbacks=[callbacks]
 )
 
