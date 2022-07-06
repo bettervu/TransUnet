@@ -1,15 +1,11 @@
 import os
 import argparse
-import numpy as np
 import pandas as pd
 import tensorflow as tf
 from bp import Environment
 from dTurk.utils.clr_callback import CyclicLR
 from tensorflow.keras.callbacks import EarlyStopping
-from train_helpers import mean_iou, oversampling, create_dataset
-from bp.database import db_session, Gtu
-import cv2
-from PIL import Image
+from train_helpers import mean_iou, oversampling, create_dataset, dice_loss
 from dTurk.models.SM_UNet import SM_UNet_Builder
 from focal_loss import BinaryFocalLoss
 import gcsfs
@@ -93,7 +89,7 @@ def segmentation_loss(y_true, y_pred):
 
 
 model = builder.build_model()
-model.compile(optimizer="adam", loss=BinaryFocalLoss(gamma=2))
+model.compile(optimizer="adam", loss=dice_loss)
 
 step_size = int(2.0 * len(train_input_names) / args_dict["batch_size"])
 callbacks = []

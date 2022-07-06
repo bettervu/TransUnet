@@ -18,7 +18,7 @@ def dice_loss(y_true, y_pred):
     return 1 - numerator / denominator
 
 
-def numpy_iou(y_true, y_pred, n_class=1):
+def numpy_iou(y_true, y_pred, n_class=2):
     def iou(y_true, y_pred, n_class):
         IOU = []
         for c in range(n_class):
@@ -44,7 +44,7 @@ def numpy_iou(y_true, y_pred, n_class=1):
 
 def mean_iou(y_true, y_pred):
     prec = []
-    for t in np.arange(1.0):
+    for t in np.arange(0.5, 1.0, 0.5):
         y_pred_ = tf.cast(y_pred > t, tf.int32)
         score = tf.numpy_function(numpy_iou, [y_true, y_pred_], tf.float64)
         prec.append(score)
@@ -175,7 +175,7 @@ def create_dataset(train_input_names, val_input_names, train_augmentation=None, 
         subset="train",
         transform_policy=get_train_transform_policy(augmentation_file=train_augmentation),
         preprocess=model_builder.get_preprocessing("s"),
-        layer_colors=[[0, 0, 0], [255, 255,255]],
+        layer_colors=[[0, 0, 0], [255, 0, 0], [0, 255, 0]],
         use_mixup=False,
         use_sample_weights=False,
         use_distance_weights=False,
@@ -184,7 +184,7 @@ def create_dataset(train_input_names, val_input_names, train_augmentation=None, 
         subset="val",
         transform_policy=val_augmentation,
         preprocess=model_builder.get_preprocessing("s"),
-        layer_colors=[[0, 0, 0], [255, 255,255]],
+        layer_colors=[[0, 0, 0], [255, 0, 0], [0, 255, 0]],
         use_sample_weights=False,
         use_distance_weights=False,
     )
