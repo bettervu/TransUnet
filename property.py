@@ -181,7 +181,7 @@ cp_callback = tf.keras.callbacks.ModelCheckpoint(
 callbacks.append(cp_callback)
 
 history = network.model.fit(
-    train_ds, epochs=2, validation_data=val_ds, callbacks=[callbacks]
+    train_ds, epochs=100, validation_data=val_ds, callbacks=[callbacks]
 )
 
 # iou = history.history["mean_iou"]
