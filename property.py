@@ -92,13 +92,13 @@ val_label_names = [
 t_l = len(train_input_names)
 v_l = len(val_input_names)
 
-AT = tf.data.AUTOTUNE
-BUFFER = 1000
-STEPS_PER_EPOCH = t_l//args_dict["batch_size"]
-VALIDATION_STEPS = v_l//args_dict["batch_size"]
-train_ds = train_ds.cache().shuffle(BUFFER).batch(args_dict["batch_size"])
-train_ds = train_ds.prefetch(buffer_size=AT)
-val_ds = val_ds.batch(args_dict["batch_size"])
+# AT = tf.data.AUTOTUNE
+# BUFFER = 1000
+# STEPS_PER_EPOCH = t_l//args_dict["batch_size"]
+# VALIDATION_STEPS = v_l//args_dict["batch_size"]
+# train_ds = train_ds.cache().shuffle(BUFFER).batch(args_dict["batch_size"])
+# train_ds = train_ds.prefetch(buffer_size=AT)
+# val_ds = val_ds.batch(args_dict["batch_size"])
 
 train_ds_batched, val_ds_batched = create_dataset(train_input_names, val_input_names, train_augmentation=args_dict["train_augmentation_file"])
 
