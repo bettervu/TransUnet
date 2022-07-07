@@ -11,7 +11,6 @@ import TransUnet.models.transunet as transunet
 import TransUnet.experiments.config as conf
 
 import masterful
-masterful = masterful.register()
 
 env = Environment()
 
