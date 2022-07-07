@@ -29,7 +29,7 @@ parser.add_argument("--lr", type=float, default=0.005)
 parser.add_argument("--batch_size", type=int, default=32)
 parser.add_argument("--patience", type=int, default=20)
 parser.add_argument("--epochs", type=int, default=100)
-parser.add_argument("--save_path", type=str, default="unet")
+parser.add_argument("--save_path", type=str, default="property")
 
 args, _ = parser.parse_known_args()
 args_dict = vars(args)
@@ -183,7 +183,7 @@ cp_callback = tf.keras.callbacks.ModelCheckpoint(
 callbacks.append(cp_callback)
 
 history = network.model.fit(
-    train_ds_batched, epochs=100, validation_data=val_ds_batched, callbacks=[callbacks]
+    train_ds_batched, epochs=300, validation_data=val_ds_batched, callbacks=[callbacks]
 )
 
 iou = history.history["mean_iou"]
