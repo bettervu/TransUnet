@@ -26,14 +26,14 @@ parser = argparse.ArgumentParser(description="TransUNet")
 parser.add_argument("dataset")
 parser.add_argument("log", type=str)
 parser.add_argument("gpu", type=int)
-parser.add_argument("--machine", type=str, default="local")
+parser.add_argument("--machine", type=str, default="akami")
 parser.add_argument("--loss", type=str, default="iou")
 parser.add_argument("--train_augmentation_file", type=str, default=None)
 parser.add_argument("--val_augmentation_file", type=str, default=None)
 parser.add_argument("--monitor", type=str, default="val_loss")
 parser.add_argument("--lr", type=float, default=0.005)
 parser.add_argument("--batch_size", type=int, default=32)
-parser.add_argument("--patience", type=int, default=6)
+parser.add_argument("--patience", type=int, default=12)
 parser.add_argument("--epochs", type=int, default=100)
 parser.add_argument("--save_path", type=str, default="weights")
 parser.add_argument("--n_layers", type=int, default=12)
@@ -132,7 +132,7 @@ tensorboard = TensorBoard(tensorboard_path, histogram_freq=1)
 callbacks.append(tensorboard)
 
 history = network.model.fit(
-    train_ds_batched, epochs=args_dict["epochs"], validation_data=val_ds_batched, callbacks=[callbacks]
+    train_ds_batched, epochs=200, validation_data=val_ds_batched, callbacks=[callbacks]
 )
 
 iou = history.history["mean_iou"]
@@ -146,7 +146,7 @@ df["val_mean_iou"] = val_iou
 df["loss"] = loss
 df["val_loss"] = val_loss
 
-df.to_csv("logs.csv")
+df.to_csv("TransUnetlogs.csv")
 
 network.model.load_weights(args_dict["checkpoint_filepath"])
 saved_model_path = args_dict["save_path"] + "/model"
