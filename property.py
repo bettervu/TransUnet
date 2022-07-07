@@ -26,7 +26,7 @@ parser.add_argument("--train_augmentation_file", type=str, default=None)
 parser.add_argument("--val_augmentation_file", type=str, default=None)
 parser.add_argument("--monitor", type=str, default="val_loss")
 parser.add_argument("--lr", type=float, default=0.005)
-parser.add_argument("--batch_size", type=int, default=12)
+parser.add_argument("--batch_size", type=int, default=32)
 parser.add_argument("--patience", type=int, default=6)
 parser.add_argument("--epochs", type=int, default=100)
 parser.add_argument("--save_path", type=str, default="unet")
@@ -63,42 +63,44 @@ val_label_names = [
     dataset_directory + "/val_labels/" + i for i in os.listdir(dataset_directory + "/val/") if i.endswith(".png")
 ]
 
-x_train = []
-y_train = []
-x_val = []
-y_val = []
+# x_train = []
+# y_train = []
+# x_val = []
+# y_val = []
+#
+# for i in range(len(train_input_names)):
+#     img = cv2.imread(train_input_names[i])
+#     img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+#     x_train.append(img)
+#     img = cv2.imread(train_label_names[i])
+#     img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+#     img = img.reshape(256,256,1)
+#     y_train.append(img)
+#
+# for i in range(len(val_input_names)):
+#     img = cv2.imread(val_input_names[i])
+#     img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
+#     x_val.append(img)
+#     img = cv2.imread(val_label_names[i])
+#     img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+#     img = img.reshape(256,256,1)
+#     y_val.append(img)
+#
+# train_ds = tf.data.Dataset.from_tensor_slices((x_train,y_train))
+# val_ds = tf.data.Dataset.from_tensor_slices((x_val,y_val))
+#
+# t_l = len(train_input_names)
+# v_l = len(val_input_names)
+#
+# AT = tf.data.AUTOTUNE
+# BUFFER = 1000
+# STEPS_PER_EPOCH = t_l//args_dict["batch_size"]
+# VALIDATION_STEPS = v_l//args_dict["batch_size"]
+# train_ds = train_ds.cache().shuffle(BUFFER).batch(args_dict["batch_size"])
+# train_ds = train_ds.prefetch(buffer_size=AT)
+# val_ds = val_ds.batch(args_dict["batch_size"])
 
-for i in range(len(train_input_names)):
-    img = cv2.imread(train_input_names[i])
-    img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-    x_train.append(img)
-    img = cv2.imread(train_label_names[i])
-    img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-    img = img.reshape(256,256,1)
-    y_train.append(img)
-
-for i in range(len(val_input_names)):
-    img = cv2.imread(val_input_names[i])
-    img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-    x_val.append(img)
-    img = cv2.imread(val_label_names[i])
-    img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-    img = img.reshape(256,256,1)
-    y_val.append(img)
-
-train_ds = tf.data.Dataset.from_tensor_slices((x_train,y_train))
-val_ds = tf.data.Dataset.from_tensor_slices((x_val,y_val))
-
-t_l = len(train_input_names)
-v_l = len(val_input_names)
-
-AT = tf.data.AUTOTUNE
-BUFFER = 1000
-STEPS_PER_EPOCH = t_l//args_dict["batch_size"]
-VALIDATION_STEPS = v_l//args_dict["batch_size"]
-train_ds = train_ds.cache().shuffle(BUFFER).batch(args_dict["batch_size"])
-train_ds = train_ds.prefetch(buffer_size=AT)
-val_ds = val_ds.batch(args_dict["batch_size"])
+train_ds_batched, val_ds_batched = create_dataset(train_input_names, val_input_names, train_augmentation=args_dict["train_augmentation_file"])
 
 builder = SM_UNet_Builder(
     encoder_name='efficientnetv2-l',
@@ -147,20 +149,6 @@ config['dropout'] = 0.1
 config['grid'] = (28,28)
 config["n_layers"] = 12
 
-builder = SM_UNet_Builder(
-    encoder_name='efficientnetv2-l',
-    input_shape=(256, 256, 3),
-    num_classes=1,
-    activation="softmax",
-    train_encoder=False,
-    encoder_weights="imagenet",
-    decoder_block_type="upsampling",
-    head_dropout=0,  # dropout at head
-    dropout=0,  # dropout at feature extraction
-)
-model = builder.build_model()
-model.compile(optimizer="adam", loss=BinaryFocalLoss(gamma=2), metrics=mean_iou)
-
 network = transunet.TransUnet(config, trainable=False)
 network.model.compile(optimizer="adam", loss=BinaryFocalLoss(gamma=2), metrics=mean_iou)
 
@@ -194,12 +182,12 @@ cp_callback = tf.keras.callbacks.ModelCheckpoint(
             save_best_only=True)
 callbacks.append(cp_callback)
 
-history = model.fit(
-    train_ds, epochs=100, validation_data=val_ds, callbacks=[callbacks]
+history = network.model.fit(
+    train_ds_batched, epochs=100, validation_data=val_ds_batched, callbacks=[callbacks]
 )
 
-# iou = history.history["mean_iou"]
-# val_iou = history.history["val_mean_iou"]
+iou = history.history["mean_iou"]
+val_iou = history.history["val_mean_iou"]
 loss = history.history["loss"]
 val_loss = history.history["val_loss"]
 
