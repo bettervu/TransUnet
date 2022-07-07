@@ -88,24 +88,24 @@ val_label_names = [
 #
 # train_ds = tf.data.Dataset.from_tensor_slices((x_train,y_train))
 # val_ds = tf.data.Dataset.from_tensor_slices((x_val,y_val))
-#
-# t_l = len(train_input_names)
-# v_l = len(val_input_names)
-#
-# AT = tf.data.AUTOTUNE
-# BUFFER = 1000
-# STEPS_PER_EPOCH = t_l//args_dict["batch_size"]
-# VALIDATION_STEPS = v_l//args_dict["batch_size"]
-# train_ds = train_ds.cache().shuffle(BUFFER).batch(args_dict["batch_size"])
-# train_ds = train_ds.prefetch(buffer_size=AT)
-# val_ds = val_ds.batch(args_dict["batch_size"])
+
+t_l = len(train_input_names)
+v_l = len(val_input_names)
+
+AT = tf.data.AUTOTUNE
+BUFFER = 1000
+STEPS_PER_EPOCH = t_l//args_dict["batch_size"]
+VALIDATION_STEPS = v_l//args_dict["batch_size"]
+train_ds = train_ds.cache().shuffle(BUFFER).batch(args_dict["batch_size"])
+train_ds = train_ds.prefetch(buffer_size=AT)
+val_ds = val_ds.batch(args_dict["batch_size"])
 
 train_ds_batched, val_ds_batched = create_dataset(train_input_names, val_input_names, train_augmentation=args_dict["train_augmentation_file"])
 
 builder = SM_UNet_Builder(
     encoder_name='efficientnetv2-l',
     input_shape=(256, 256, 3),
-    num_classes=1,
+    num_classes=3,
     activation="softmax",
     train_encoder=False,
     encoder_weights="imagenet",
@@ -113,6 +113,28 @@ builder = SM_UNet_Builder(
     head_dropout=0,  # dropout at head
     dropout=0,  # dropout at feature extraction
 )
+
+def dice_per_class(y_true, y_pred, eps=1e-5):
+    intersect = tf.reduce_sum(y_true * y_pred)
+    y_sum = tf.reduce_sum(y_true * y_true)
+    z_sum = tf.reduce_sum(y_pred * y_pred)
+    loss = 1 - (2 * intersect + eps) / (z_sum + y_sum + eps)
+    return loss
+
+def gen_dice(y_true, y_pred):
+    """both tensors are [b, h, w, classes] and y_pred is in logit form"""
+    # [b, h, w, classes]
+    pred_tensor = tf.nn.softmax(y_pred)
+    loss = 0.0
+    for c in range(3):
+        loss += dice_per_class(y_true[:, :, :, c], pred_tensor[:, :, :, c])
+    return loss / 3
+
+def segmentation_loss(y_true, y_pred):
+    cce = tf.keras.losses.CategoricalCrossentropy(from_logits=True)
+    cross_entropy_loss = cce(y_true=y_true, y_pred=y_pred)
+    dice_loss = gen_dice(y_true, y_pred)
+    return 0.5 * cross_entropy_loss + 0.5 * dice_loss
 
 def dice_per_class(y_true, y_pred, eps=1e-5):
     intersect = tf.reduce_sum(y_true * y_pred)
@@ -136,21 +158,23 @@ def segmentation_loss(y_true, y_pred):
     dice_loss = gen_dice(y_true, y_pred)
     return 0.5 * cross_entropy_loss + 0.5 * dice_loss
 
+model = builder.build_model()
+model.compile(optimizer='adam', loss=BinaryFocalLoss(gamma=2), metrics=mean_iou)
 
 env = Environment()
 
-config = conf.get_transunet()
-config['image_size'] = 256
-config["filters"] = 1
-config['n_skip'] = 3
-config['decoder_channels'] = [128, 64, 32, 16]
-config['resnet']['n_layers'] = (3,4,9,12)
-config['dropout'] = 0.1
-config['grid'] = (28,28)
-config["n_layers"] = 12
-
-network = transunet.TransUnet(config, trainable=False)
-network.model.compile(optimizer="adam", loss=BinaryFocalLoss(gamma=2), metrics=mean_iou)
+# config = conf.get_transunet()
+# config['image_size'] = 256
+# config["filters"] = 1
+# config['n_skip'] = 3
+# config['decoder_channels'] = [128, 64, 32, 16]
+# config['resnet']['n_layers'] = (3,4,9,12)
+# config['dropout'] = 0.1
+# config['grid'] = (28,28)
+# config["n_layers"] = 12
+#
+# network = transunet.TransUnet(config, trainable=False)
+# network.model.compile(optimizer="adam", loss=BinaryFocalLoss(gamma=2), metrics=mean_iou)
 
 step_size = int(2.0 * len(train_input_names) / args_dict["batch_size"])
 callbacks = []
@@ -182,12 +206,12 @@ cp_callback = tf.keras.callbacks.ModelCheckpoint(
             save_best_only=True)
 callbacks.append(cp_callback)
 
-history = network.model.fit(
-    train_ds_batched, epochs=300, validation_data=val_ds_batched, callbacks=[callbacks]
+history = model.fit(
+    train_ds, epochs=100, validation_data=val_ds, callbacks=[callbacks]
 )
 
-iou = history.history["mean_iou"]
-val_iou = history.history["val_mean_iou"]
+# iou = history.history["mean_iou"]
+# val_iou = history.history["val_mean_iou"]
 loss = history.history["loss"]
 val_loss = history.history["val_loss"]
 
@@ -197,6 +221,10 @@ df["val_loss"] = val_loss
 
 df.to_csv("parcelUnet.csv")
 
-network.model.load_weights(args_dict["checkpoint_filepath"])
-saved_model_path = args_dict["save_path"] + "/model"
-network.model.save(saved_model_path)
+# serialize model to JSON
+model_json = model.to_json()
+with open("model.json", "w") as json_file:
+    json_file.write(model_json)
+# serialize weights to HDF5
+model.save_weights("model.h5")
+print("Saved model to disk")
