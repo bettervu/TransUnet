@@ -9,7 +9,6 @@ from train_helpers import mean_iou, oversampling, create_dataset
 
 from dTurk.models.SM_UNet import SM_UNet_Builder
 from focal_loss import BinaryFocalLoss
-from train import segmentation_loss
 
 env = Environment()
 
@@ -45,6 +44,27 @@ try:
 except:
     print("Gpus not found")
 
+def dice_per_class(y_true, y_pred, eps=1e-5):
+    intersect = tf.reduce_sum(y_true * y_pred)
+    y_sum = tf.reduce_sum(y_true * y_true)
+    z_sum = tf.reduce_sum(y_pred * y_pred)
+    loss = 1 - (2 * intersect + eps) / (z_sum + y_sum + eps)
+    return loss
+
+def gen_dice(y_true, y_pred):
+    """both tensors are [b, h, w, classes] and y_pred is in logit form"""
+    # [b, h, w, classes]
+    pred_tensor = tf.nn.softmax(y_pred)
+    loss = 0.0
+    for c in range(3):
+        loss += dice_per_class(y_true[:, :, :, c], pred_tensor[:, :, :, c])
+    return loss / 3
+
+def segmentation_loss(y_true, y_pred):
+    cce = tf.keras.losses.CategoricalCrossentropy(from_logits=True)
+    cross_entropy_loss = cce(y_true=y_true, y_pred=y_pred)
+    dice_loss = gen_dice(y_true, y_pred)
+    return 0.5 * cross_entropy_loss + 0.5 * dice_loss
 
 train_input_names = [
     dataset_directory + "/train_labels/" + i

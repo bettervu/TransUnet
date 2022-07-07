@@ -9,7 +9,6 @@ from train_helpers import mean_iou, oversampling, create_dataset
 
 from dTurk.models.SM_UNet import SM_UNet_Builder
 from focal_loss import BinaryFocalLoss
-from train import segmentation_loss
 
 env = Environment()
 
