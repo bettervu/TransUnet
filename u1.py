@@ -75,8 +75,7 @@ builder = SM_UNet_Builder(
 )
 
 model = builder.build_model()
-
-model.compile(optimizer="adam", loss=segmentation_loss, metrics=mean_iou)
+model.compile(optimizer="adam", loss=BinaryFocalLoss(gamma=2), metrics=mean_iou)
 
 callbacks = []
 cyclic_lr = CyclicLR(

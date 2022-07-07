@@ -132,7 +132,7 @@ tensorboard = TensorBoard(tensorboard_path, histogram_freq=1)
 callbacks.append(tensorboard)
 
 history = network.model.fit(
-    train_ds_batched, epochs=200, validation_data=val_ds_batched, callbacks=[callbacks]
+    train_ds_batched, epochs=300, validation_data=val_ds_batched, callbacks=[callbacks]
 )
 
 iou = history.history["mean_iou"]

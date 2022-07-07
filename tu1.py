@@ -3,17 +3,26 @@ import argparse
 import pandas as pd
 import tensorflow as tf
 from bp import Environment
+import TransUnet.experiments.config as conf
 from dTurk.utils.clr_callback import CyclicLR
+import TransUnet.models.transunet as transunet
 from tensorflow.keras.callbacks import TensorBoard, EarlyStopping
-from train_helpers import mean_iou, oversampling, create_dataset
-
-from dTurk.models.SM_UNet import SM_UNet_Builder
+from train_helpers import dice_loss, mean_iou, oversampling, create_dataset
+from dTurk.models.sm_models.losses import DiceLoss
 from focal_loss import BinaryFocalLoss
-from train import segmentation_loss
 
 env = Environment()
 
-parser = argparse.ArgumentParser(description="UNet")
+config = conf.get_transunet()
+config["image_size"] = 256
+config["filters"] = 3
+config["n_skip"] = 3
+config["decoder_channels"] = [128, 64, 32, 16]
+config["resnet"]["n_layers"] = (3, 4, 9, 12)
+config["dropout"] = 0.1
+config["grid"] = (28, 28)
+
+parser = argparse.ArgumentParser(description="TransUNet")
 parser.add_argument("dataset")
 parser.add_argument("log", type=str)
 parser.add_argument("gpu", type=int)
@@ -23,10 +32,10 @@ parser.add_argument("--train_augmentation_file", type=str, default=None)
 parser.add_argument("--val_augmentation_file", type=str, default=None)
 parser.add_argument("--monitor", type=str, default="val_loss")
 parser.add_argument("--lr", type=float, default=0.005)
-parser.add_argument("--batch_size", type=int, default=12)
+parser.add_argument("--batch_size", type=int, default=32)
 parser.add_argument("--patience", type=int, default=12)
 parser.add_argument("--epochs", type=int, default=100)
-parser.add_argument("--save_path", type=str, default="unet")
+parser.add_argument("--save_path", type=str, default="weights")
 parser.add_argument("--n_layers", type=int, default=12)
 
 args, _ = parser.parse_known_args()
@@ -38,6 +47,7 @@ if args_dict["machine"] == "local":
 else:
     dataset_directory = "/home/bv/" + "datasets/semseg_base" + "/" + args_dict["dataset"]
 
+config["n_layers"] = args_dict["n_layers"]
 
 try:
     gpus = tf.config.list_physical_devices("GPU")
@@ -61,22 +71,32 @@ train_ds_batched, val_ds_batched = create_dataset(
 )
 
 step_size = int(2.0 * len(train_input_names) / args_dict["batch_size"])
+network = transunet.TransUnet(config, trainable=False)
 
-builder = SM_UNet_Builder(
-    encoder_name='efficientnetv2-l',
-    input_shape=(256, 256, 3),
-    num_classes=3,
-    activation="softmax",
-    train_encoder=False,
-    encoder_weights="imagenet",
-    decoder_block_type="upsampling",
-    head_dropout=0,  # dropout at head
-    dropout=0,  # dropout at feature extraction
-)
 
-model = builder.build_model()
+def dice_per_class(y_true, y_pred, eps=1e-5):
+    intersect = tf.reduce_sum(y_true * y_pred)
+    y_sum = tf.reduce_sum(y_true * y_true)
+    z_sum = tf.reduce_sum(y_pred * y_pred)
+    loss = 1 - (2 * intersect + eps) / (z_sum + y_sum + eps)
+    return loss
 
-model.compile(optimizer="adam", loss=segmentation_loss, metrics=mean_iou)
+def gen_dice(y_true, y_pred):
+    """both tensors are [b, h, w, classes] and y_pred is in logit form"""
+    # [b, h, w, classes]
+    pred_tensor = tf.nn.softmax(y_pred)
+    loss = 0.0
+    for c in range(3):
+        loss += dice_per_class(y_true[:, :, :, c], pred_tensor[:, :, :, c])
+    return loss / 3
+
+def segmentation_loss(y_true, y_pred):
+    cce = tf.keras.losses.CategoricalCrossentropy(from_logits=True)
+    cross_entropy_loss = cce(y_true=y_true, y_pred=y_pred)
+    dice_loss = gen_dice(y_true, y_pred)
+    return 0.5 * cross_entropy_loss + 0.5 * dice_loss
+
+network.model.compile(optimizer="adam", loss=BinaryFocalLoss(gamma=2), metrics=mean_iou)
 
 callbacks = []
 cyclic_lr = CyclicLR(
@@ -111,7 +131,7 @@ tensorboard_path = os.path.join(env.paths.remote, "dTurk", "logs", f"{args_dict[
 tensorboard = TensorBoard(tensorboard_path, histogram_freq=1)
 callbacks.append(tensorboard)
 
-history = model.fit(
+history = network.model.fit(
     train_ds_batched, epochs=300, validation_data=val_ds_batched, callbacks=[callbacks]
 )
 
@@ -126,8 +146,8 @@ df["val_mean_iou"] = val_iou
 df["loss"] = loss
 df["val_loss"] = val_loss
 
-df.to_csv("unetlogs.csv")
+df.to_csv("TransUnetlogs.csv")
 
-model.load_weights(args_dict["checkpoint_filepath"])
+network.model.load_weights(args_dict["checkpoint_filepath"])
 saved_model_path = args_dict["save_path"] + "/model"
-model.save(saved_model_path)
+network.model.save(saved_model_path)
