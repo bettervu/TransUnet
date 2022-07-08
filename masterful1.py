@@ -17,7 +17,7 @@ env = Environment()
 
 config = conf.get_transunet()
 config['image_size'] = 256
-config["filters"] = 3
+config["filters"] = 1
 config['n_skip'] = 3
 config['decoder_channels'] = [128, 64, 32, 16]
 config['resnet']['n_layers'] = (3,4,9,12)
@@ -60,21 +60,21 @@ val_label_names = [
     dataset_directory + "/val_labels/" + i for i in os.listdir(dataset_directory + "/val/") if i.endswith(".png")
 ]
 
-
 x_train = []
 y_train = []
-for i in range(len(train_input_names)):
+for i in range(10):
     img = plt.imread(train_input_names[i])
     mask = plt.imread(train_label_names[i])
+    mask = mask.reshape((256,256,1))
     x_train.append(img)
     y_train.append(mask)
-
 
 dataset = tf.data.Dataset.from_tensor_slices((np.array(x_train), np.array(y_train)))
 
 step_size = int(2.0 * len(train_input_names) / batch_size)
 network = transunet.TransUnet(config, trainable=False)
 network.model.compile(optimizer="adam", loss=dice_loss, metrics=mean_iou)
+
 callbacks = []
 cyclic_lr = CyclicLR(
     base_lr=lr / 10.0,
@@ -111,7 +111,6 @@ training_dataset_params = masterful.data.learn_data_params(
   sparse_labels=False,
 )
 
-
 optimization_params = masterful.optimization.learn_optimization_params(
   network.model,
   model_params,
@@ -131,7 +130,6 @@ ssl_params = masterful.ssl.learn_ssl_params(
   dataset,
   training_dataset_params,
 )
-
 
 training_report = masterful.training.train(
   network.model,
