@@ -15,11 +15,6 @@ masterful = masterful.register()
 
 env = Environment()
 
-parser = argparse.ArgumentParser(description="masterful")
-parser.add_argument("dataset")
-args, _ = parser.parse_known_args()
-args_dict = vars(args)
-
 config = conf.get_transunet()
 config['image_size'] = 256
 config["filters"] = 3
@@ -30,7 +25,6 @@ config['dropout'] = 0.1
 config['grid'] = (28,28)
 config["n_layers"] = 12
 
-dataset = "MACH-77-it1"
 machine = "local"
 monitor = "val_loss"
 epochs = 5
@@ -41,7 +35,7 @@ train_augmentation_file = "/Users/srinathramalingam/Desktop/codebase/dTurk/dTurk
 save_path = "weights/TU1"
 checkpoint_filepath = save_path + "/checkpoint/"
 
-dataset_directory = os.environ.get("BP_PATH_REMOTE") + "/datasets/semseg_base" + "/" + dataset
+dataset_directory = os.environ.get("BP_PATH_REMOTE") + "/datasets/semseg_base" + "/" + "Dataset"
 
 try:
     gpus = tf.config.list_physical_devices("GPU")
