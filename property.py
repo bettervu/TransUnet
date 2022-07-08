@@ -121,7 +121,7 @@ def gen_dice(y_true, y_pred):
     """both tensors are [b, h, w, classes] and y_pred is in logit form"""
     pred_tensor = tf.nn.softmax(y_pred)
     loss = 0.0
-    for c in range(3):
+    for c in range(2):
         loss += dice_per_class(y_true[:, :, :, c], pred_tensor[:, :, :, c])
     return loss / 3
 
