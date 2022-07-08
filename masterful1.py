@@ -24,6 +24,8 @@ config['resnet']['n_layers'] = (3,4,9,12)
 config['dropout'] = 0.1
 config['grid'] = (28,28)
 config["n_layers"] = 12
+network = transunet.TransUnet(config, trainable=False)
+network.model.compile(optimizer="adam", loss=dice_loss, metrics=mean_iou)
 
 machine = "local"
 monitor = "val_loss"
@@ -72,8 +74,6 @@ for i in range(10):
 dataset = tf.data.Dataset.from_tensor_slices((np.array(x_train), np.array(y_train)))
 
 step_size = int(2.0 * len(train_input_names) / batch_size)
-network = transunet.TransUnet(config, trainable=False)
-network.model.compile(optimizer="adam", loss=dice_loss, metrics=mean_iou)
 
 callbacks = []
 cyclic_lr = CyclicLR(
@@ -100,14 +100,14 @@ model_params = masterful.architecture.learn_architecture_params(
   model=network.model,
   task=masterful.enums.Task.SEMANTIC_SEGMENTATION,
   input_range=masterful.enums.ImageRange.ZERO_ONE,
-  num_classes=3,
+  num_classes=1,
   prediction_logits=True,
 )
 training_dataset_params = masterful.data.learn_data_params(
   dataset=dataset,
   task=masterful.enums.Task.SEMANTIC_SEGMENTATION,
   image_range=masterful.enums.ImageRange.ZERO_ONE,
-  num_classes=3,
+  num_classes=1,
   sparse_labels=False,
 )
 
