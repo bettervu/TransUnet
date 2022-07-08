@@ -88,10 +88,10 @@ val_label_names = [
 #
 # train_ds = tf.data.Dataset.from_tensor_slices((x_train,y_train))
 # val_ds = tf.data.Dataset.from_tensor_slices((x_val,y_val))
-
-t_l = len(train_input_names)
-v_l = len(val_input_names)
-
+#
+# t_l = len(train_input_names)
+# v_l = len(val_input_names)
+#
 # AT = tf.data.AUTOTUNE
 # BUFFER = 1000
 # STEPS_PER_EPOCH = t_l//args_dict["batch_size"]
