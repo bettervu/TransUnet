@@ -37,7 +37,7 @@ train_augmentation_file = "/Users/srinathramalingam/Desktop/codebase/dTurk/dTurk
 save_path = "weights/TU1"
 checkpoint_filepath = save_path + "/checkpoint/"
 
-dataset_directory = os.environ.get("BP_PATH_REMOTE") + "/datasets/semseg_base" + "/" + "Dataset"
+dataset_directory = os.environ.get("BP_PATH_REMOTE") + "/datasets/semseg_base" + "/" + "MACH-77-it1"
 
 try:
     gpus = tf.config.list_physical_devices("GPU")
