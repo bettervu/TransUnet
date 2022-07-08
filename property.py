@@ -14,8 +14,6 @@ from focal_loss import BinaryFocalLoss
 import gcsfs
 FS = gcsfs.GCSFileSystem()
 
-import TransUnet.models.transunet as transunet
-import TransUnet.experiments.config as conf
 
 parser = argparse.ArgumentParser(description="Property")
 parser.add_argument("dataset")
@@ -64,13 +62,6 @@ val_label_names = [
     dataset_directory + "/val_labels/" + i for i in os.listdir(dataset_directory + "/val/") if i.endswith(".png")
 ]
 
-val_input_names = [
-    dataset_directory + "/val/" + i for i in os.listdir(dataset_directory + "/val/") if i.endswith(".png")
-]
-val_label_names = [
-    dataset_directory + "/val_labels/" + i for i in os.listdir(dataset_directory + "/val/") if i.endswith(".png")
-]
-
 x_train = []
 y_train = []
 for i in range(len(train_input_names)):
@@ -112,7 +103,7 @@ builder = SM_UNet_Builder(
 
 
 model = builder.build_model()
-model.compile(optimizer='adam', loss=dice_coef_binary_loss, metrics=mean_iou)
+model.compile(optimizer='adam', loss=BinaryFocalLoss(gamma=2), metrics=mean_iou)
 
 step_size = int(2.0 * len(train_input_names) / args_dict["batch_size"])
 callbacks = []
@@ -147,7 +138,7 @@ callbacks.append(cp_callback)
 
 
 history = model.fit(
-    train_ds, epochs=100, validation_data=val_ds, callbacks=[callbacks]
+    train_ds, epochs=200, validation_data=val_ds, callbacks=[callbacks]
 )
 
 iou = history.history["mean_iou"]
@@ -158,6 +149,8 @@ val_loss = history.history["val_loss"]
 df = pd.DataFrame(loss)
 df["loss"] = loss
 df["val_loss"] = val_loss
+df["mean_iou"] = iou
+df["val_mean_iou"] = val_iou
 
 df.to_csv("parcelUnet.csv")
 
