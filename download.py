@@ -46,21 +46,27 @@ for gtu_id in df["gtu_ids"][:int(0.8*length)]:
     with db_session() as sess:
         ppid = sess.query(Gtu.property_id).filter(Gtu.id == gtu_id).first()[0]
     gtu_id_dir, property_id_dir = possible_image_location(property_id=ppid, gtu_id=gtu_id)
-    image = open_image(gtu_id_dir, property_id_dir, "image.jpg")
-    image = cv2.resize(image, (256,256))
-    mask = open_image(gtu_id_dir, property_id_dir, "layer.Property.png")
-    mask = cv2.resize(mask, (256,256))
-    plt.imsave(f"Dataset/train/{gtu_id}.png", image)
-    cv2.imwrite(f"Dataset/train_labels/{gtu_id}.png", mask)
+    try:
+        image = open_image(gtu_id_dir, property_id_dir, "image.jpg")
+        image = cv2.resize(image, (256,256))
+        mask = open_image(gtu_id_dir, property_id_dir, "layer.Property.png")
+        mask = cv2.resize(mask, (256,256))
+        plt.imsave(f"Dataset/train/{gtu_id}.png", image)
+        cv2.imwrite(f"Dataset/train_labels/{gtu_id}.png", mask)
+    except:
+        print(gtu_id)
 
 
 for gtu_id in df["gtu_ids"][int(0.8*length):]:
     with db_session() as sess:
         ppid = sess.query(Gtu.property_id).filter(Gtu.id == gtu_id).first()[0]
     gtu_id_dir, property_id_dir = possible_image_location(property_id=ppid, gtu_id=gtu_id)
-    image = open_image(gtu_id_dir, property_id_dir, "image.jpg")
-    image = cv2.resize(image, (256,256))
-    mask = open_image(gtu_id_dir, property_id_dir, "layer.Property.png")
-    mask = cv2.resize(mask, (256,256))
-    plt.imsave(f"Dataset/val/{gtu_id}.png", image)
-    cv2.imwrite(f"Dataset/val_labels/{gtu_id}.png", mask)
+    try:
+        image = open_image(gtu_id_dir, property_id_dir, "image.jpg")
+        image = cv2.resize(image, (256,256))
+        mask = open_image(gtu_id_dir, property_id_dir, "layer.Property.png")
+        mask = cv2.resize(mask, (256,256))
+        plt.imsave(f"Dataset/val/{gtu_id}.png", image)
+        cv2.imwrite(f"Dataset/val_labels/{gtu_id}.png", mask)
+    except:
+        print(gtu_id)
