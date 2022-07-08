@@ -206,12 +206,14 @@ cp_callback = tf.keras.callbacks.ModelCheckpoint(
             save_best_only=True)
 callbacks.append(cp_callback)
 
+
+
 history = model.fit(
     train_ds_batched, epochs=100, validation_data=val_ds_batched, callbacks=[callbacks]
 )
 
-# iou = history.history["mean_iou"]
-# val_iou = history.history["val_mean_iou"]
+iou = history.history["mean_iou"]
+val_iou = history.history["val_mean_iou"]
 loss = history.history["loss"]
 val_loss = history.history["val_loss"]
 
@@ -221,10 +223,4 @@ df["val_loss"] = val_loss
 
 df.to_csv("parcelUnet.csv")
 
-# serialize model to JSON
-model_json = model.to_json()
-with open("model.json", "w") as json_file:
-    json_file.write(model_json)
-# serialize weights to HDF5
-model.save_weights("model.h5")
-print("Saved model to disk")
+model.save("my_model")
