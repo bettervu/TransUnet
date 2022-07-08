@@ -6,28 +6,18 @@ import tensorflow as tf
 from bp import Environment
 from dTurk.utils.clr_callback import CyclicLR
 from tensorflow.keras.callbacks import TensorBoard, EarlyStopping
-from train_helpers import dice_loss, mean_iou, oversampling, create_dataset
+from train_helpers import dice_loss, mean_iou
 import TransUnet.models.transunet as transunet
 import TransUnet.experiments.config as conf
-
 import masterful
 
 env = Environment()
 
 parser = argparse.ArgumentParser(description="masterful")
 parser.add_argument("dataset")
-parser.add_argument("log", type=str)
 parser.add_argument("gpu", type=int)
-parser.add_argument("--machine", type=str, default="akami")
-parser.add_argument("--loss", type=str, default="iou")
-parser.add_argument("--train_augmentation_file", type=str, default=None)
-parser.add_argument("--val_augmentation_file", type=str, default=None)
-parser.add_argument("--monitor", type=str, default="val_loss")
-parser.add_argument("--lr", type=float, default=0.005)
-parser.add_argument("--batch_size", type=int, default=32)
-parser.add_argument("--patience", type=int, default=20)
-parser.add_argument("--epochs", type=int, default=100)
-parser.add_argument("--save_path", type=str, default="property")
+args, _ = parser.parse_known_args()
+args_dict = vars(args)
 
 config = conf.get_transunet()
 config['image_size'] = 256
@@ -54,7 +44,7 @@ dataset_directory = os.environ.get("BP_PATH_REMOTE") + "/datasets/semseg_base" +
 
 try:
     gpus = tf.config.list_physical_devices("GPU")
-    tf.config.set_visible_devices(gpus[args_dict["gpu"]], "GPU")
+    tf.config.set_visible_devices(args_dict["gpu"], "GPU")
 except:
     print("Gpus not found")
 
