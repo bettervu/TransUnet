@@ -6,6 +6,7 @@ import pandas as pd
 from PIL import Image
 import matplotlib.pyplot as plt
 from bp.database import db_session, Gtu
+from tqdm import tqdm
 FS = gcsfs.GCSFileSystem()
 
 
@@ -42,7 +43,7 @@ os.makedirs("Dataset/val_labels", exist_ok=True)
 length = len(df)
 
 
-for gtu_id in df["gtu_ids"][:int(0.8*length)]:
+for gtu_id in tqdm(df["gtu_ids"][:int(0.8*length)]):
     with db_session() as sess:
         ppid = sess.query(Gtu.property_id).filter(Gtu.id == gtu_id).first()[0]
     gtu_id_dir, property_id_dir = possible_image_location(property_id=ppid, gtu_id=gtu_id)
@@ -57,7 +58,7 @@ for gtu_id in df["gtu_ids"][:int(0.8*length)]:
         print(gtu_id)
 
 
-for gtu_id in df["gtu_ids"][int(0.8*length):]:
+for gtu_id in tqdm(df["gtu_ids"][int(0.8*length):]):
     with db_session() as sess:
         ppid = sess.query(Gtu.property_id).filter(Gtu.id == gtu_id).first()[0]
     gtu_id_dir, property_id_dir = possible_image_location(property_id=ppid, gtu_id=gtu_id)
