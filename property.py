@@ -129,7 +129,7 @@ def segmentation_loss(y_true, y_pred):
 
 
 model = builder.build_model()
-model.compile(optimizer='adam', loss=segmentation_loss, metrics=mean_iou)
+model.compile(optimizer='adam', loss=BinaryFocalLoss(gamma=2), metrics=mean_iou)
 
 env = Environment()
 
