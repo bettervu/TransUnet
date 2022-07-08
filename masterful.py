@@ -15,7 +15,6 @@ env = Environment()
 
 parser = argparse.ArgumentParser(description="masterful")
 parser.add_argument("dataset")
-parser.add_argument("gpu", type=int)
 args, _ = parser.parse_known_args()
 args_dict = vars(args)
 
