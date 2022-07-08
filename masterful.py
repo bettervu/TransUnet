@@ -44,7 +44,7 @@ dataset_directory = os.environ.get("BP_PATH_REMOTE") + "/datasets/semseg_base" +
 
 try:
     gpus = tf.config.list_physical_devices("GPU")
-    tf.config.set_visible_devices(args_dict["gpu"], "GPU")
+    tf.config.set_visible_devices(1, "GPU")
 except:
     print("Gpus not found")
 
