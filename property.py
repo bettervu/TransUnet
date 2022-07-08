@@ -13,7 +13,10 @@ from dTurk.models.SM_UNet import SM_UNet_Builder
 from focal_loss import BinaryFocalLoss
 import gcsfs
 FS = gcsfs.GCSFileSystem()
+env = Environment()
 
+import TransUnet.models.transunet as transunet
+import TransUnet.experiments.config as conf
 
 parser = argparse.ArgumentParser(description="Property")
 parser.add_argument("dataset")
@@ -101,9 +104,31 @@ builder = SM_UNet_Builder(
     dropout=0,  # dropout at feature extraction
 )
 
+def dice_per_class(y_true, y_pred, eps=1e-5):
+    intersect = tf.reduce_sum(y_true * y_pred)
+    y_sum = tf.reduce_sum(y_true * y_true)
+    z_sum = tf.reduce_sum(y_pred * y_pred)
+    loss = 1 - (2 * intersect + eps) / (z_sum + y_sum + eps)
+    return loss
+
+def gen_dice(y_true, y_pred):
+    """both tensors are [b, h, w, classes] and y_pred is in logit form"""
+    pred_tensor = tf.nn.softmax(y_pred)
+    loss = 0.0
+    for c in range(3):
+        loss += dice_per_class(y_true[:, :, :, c], pred_tensor[:, :, :, c])
+    return loss / 3
+
+def segmentation_loss(y_true, y_pred):
+    cce = tf.keras.losses.CategoricalCrossentropy(from_logits=True)
+    cross_entropy_loss = cce(y_true=y_true, y_pred=y_pred)
+    dice_loss = gen_dice(y_true, y_pred)
+    return 0.5 * cross_entropy_loss + 0.5 * dice_loss
 
 model = builder.build_model()
-model.compile(optimizer='adam', loss=BinaryFocalLoss(gamma=2), metrics=mean_iou)
+model.compile(optimizer='adam', loss=segmentation_loss, metrics=mean_iou)
+
+env = Environment()
 
 step_size = int(2.0 * len(train_input_names) / args_dict["batch_size"])
 callbacks = []
@@ -138,7 +163,7 @@ callbacks.append(cp_callback)
 
 
 history = model.fit(
-    train_ds, epochs=200, validation_data=val_ds, callbacks=[callbacks]
+    train_ds, epochs=100, validation_data=val_ds, callbacks=[callbacks]
 )
 
 iou = history.history["mean_iou"]
