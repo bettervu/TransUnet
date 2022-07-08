@@ -17,7 +17,7 @@ env = Environment()
 
 config = conf.get_transunet()
 config['image_size'] = 256
-config["filters"] = 1
+config["filters"] = 3
 config['n_skip'] = 3
 config['decoder_channels'] = [128, 64, 32, 16]
 config['resnet']['n_layers'] = (3,4,9,12)
@@ -64,10 +64,9 @@ val_label_names = [
 
 x_train = []
 y_train = []
-for i in range(10):
+for i in range(len(train_input_names)):
     img = plt.imread(train_input_names[i])
     mask = plt.imread(train_label_names[i])
-    mask = mask.reshape((256,256,1))
     x_train.append(img)
     y_train.append(mask)
 
