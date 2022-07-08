@@ -91,8 +91,8 @@ for i in range(len(val_input_names)):
     x_val.append(img)
     y_val.append(mask)
 
-train_ds = tf.data.Dataset.from_tensor_slices((np.array(x_train), np.array(y_train))).batch(16, drop_remainder=True)
-val_ds = tf.data.Dataset.from_tensor_slices((np.array(x_train), np.array(y_train))).batch(16, drop_remainder=True)
+train_ds = tf.data.Dataset.from_tensor_slices((np.array(x_train), np.array(y_train))).batch(32, drop_remainder=True)
+val_ds = tf.data.Dataset.from_tensor_slices((np.array(x_val), np.array(y_val))).batch(32, drop_remainder=True)
 
 config = conf.get_transunet()
 config['image_size'] = 256
