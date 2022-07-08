@@ -1,4 +1,5 @@
 import cv2
+import numpy as np
 import os
 import argparse
 import pandas as pd
@@ -6,12 +7,12 @@ import tensorflow as tf
 from bp import Environment
 from dTurk.utils.clr_callback import CyclicLR
 from tensorflow.keras.callbacks import EarlyStopping
+import matplotlib.pyplot as plt
 from train_helpers import mean_iou, create_dataset, dice_loss
 from dTurk.models.SM_UNet import SM_UNet_Builder
 from focal_loss import BinaryFocalLoss
 import gcsfs
 FS = gcsfs.GCSFileSystem()
-env = Environment()
 
 import TransUnet.models.transunet as transunet
 import TransUnet.experiments.config as conf
@@ -63,44 +64,39 @@ val_label_names = [
     dataset_directory + "/val_labels/" + i for i in os.listdir(dataset_directory + "/val/") if i.endswith(".png")
 ]
 
-# x_train = []
-# y_train = []
-# x_val = []
-# y_val = []
-#
-# for i in range(len(train_input_names)):
-#     img = cv2.imread(train_input_names[i])
-#     img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-#     x_train.append(img)
-#     img = cv2.imread(train_label_names[i])
-#     img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-#     img = img.reshape(256,256,1)
-#     y_train.append(img)
-#
-# for i in range(len(val_input_names)):
-#     img = cv2.imread(val_input_names[i])
-#     img = cv2.cvtColor(img, cv2.COLOR_RGB2BGR)
-#     x_val.append(img)
-#     img = cv2.imread(val_label_names[i])
-#     img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-#     img = img.reshape(256,256,1)
-#     y_val.append(img)
-#
-# train_ds = tf.data.Dataset.from_tensor_slices((x_train,y_train))
-# val_ds = tf.data.Dataset.from_tensor_slices((x_val,y_val))
-#
-# t_l = len(train_input_names)
-# v_l = len(val_input_names)
-#
-# AT = tf.data.AUTOTUNE
-# BUFFER = 1000
-# STEPS_PER_EPOCH = t_l//args_dict["batch_size"]
-# VALIDATION_STEPS = v_l//args_dict["batch_size"]
-# train_ds = train_ds.cache().shuffle(BUFFER).batch(args_dict["batch_size"])
-# train_ds = train_ds.prefetch(buffer_size=AT)
-# val_ds = val_ds.batch(args_dict["batch_size"])
+val_input_names = [
+    dataset_directory + "/val/" + i for i in os.listdir(dataset_directory + "/val/") if i.endswith(".png")
+]
+val_label_names = [
+    dataset_directory + "/val_labels/" + i for i in os.listdir(dataset_directory + "/val/") if i.endswith(".png")
+]
 
-train_ds_batched, val_ds_batched = create_dataset(train_input_names, val_input_names, train_augmentation=args_dict["train_augmentation_file"])
+x_train = []
+y_train = []
+for i in range(len(train_input_names)):
+    img = cv2.imread(train_input_names[i])
+    mask = cv2.imread(train_label_names[i])
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    mask = cv2.cvtColor(mask, cv2.COLOR_BGR2RGB)
+    mask = mask.astype(np.float32)
+    x_train.append(img)
+    y_train.append(mask)
+
+x_val = []
+y_val = []
+for i in range(len(val_input_names)):
+    img = cv2.imread(val_input_names[i])
+    mask = cv2.imread(val_label_names[i])
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    mask = cv2.cvtColor(mask, cv2.COLOR_BGR2RGB)
+    mask = mask.astype(np.float32)
+    x_val.append(img)
+    y_val.append(mask)
+
+train_ds = tf.data.Dataset.from_tensor_slices((np.array(x_train), np.array(y_train))).batch(16, drop_remainder=True)
+val_ds = tf.data.Dataset.from_tensor_slices((np.array(x_train), np.array(y_train))).batch(16, drop_remainder=True)
+
+# train_ds_batched, val_ds_batched = create_dataset(train_input_names, val_input_names, train_augmentation=args_dict["train_augmentation_file"])
 
 builder = SM_UNet_Builder(
     encoder_name='efficientnetv2-l',
@@ -123,7 +119,6 @@ def dice_per_class(y_true, y_pred, eps=1e-5):
 
 def gen_dice(y_true, y_pred):
     """both tensors are [b, h, w, classes] and y_pred is in logit form"""
-    # [b, h, w, classes]
     pred_tensor = tf.nn.softmax(y_pred)
     loss = 0.0
     for c in range(3):
@@ -136,45 +131,8 @@ def segmentation_loss(y_true, y_pred):
     dice_loss = gen_dice(y_true, y_pred)
     return 0.5 * cross_entropy_loss + 0.5 * dice_loss
 
-def dice_per_class(y_true, y_pred, eps=1e-5):
-    intersect = tf.reduce_sum(y_true * y_pred)
-    y_sum = tf.reduce_sum(y_true * y_true)
-    z_sum = tf.reduce_sum(y_pred * y_pred)
-    loss = 1 - (2 * intersect + eps) / (z_sum + y_sum + eps)
-    return loss
-
-def gen_dice(y_true, y_pred):
-    """both tensors are [b, h, w, classes] and y_pred is in logit form"""
-    # [b, h, w, classes]
-    pred_tensor = tf.nn.softmax(y_pred)
-    loss = 0.0
-    for c in range(2):
-        loss += dice_per_class(y_true[:, :, :, c], pred_tensor[:, :, :, c])
-    return loss / 1
-
-def segmentation_loss(y_true, y_pred):
-    cce = tf.keras.losses.CategoricalCrossentropy(from_logits=True)
-    cross_entropy_loss = cce(y_true=y_true, y_pred=y_pred)
-    dice_loss = gen_dice(y_true, y_pred)
-    return 0.5 * cross_entropy_loss + 0.5 * dice_loss
-
 model = builder.build_model()
-model.compile(optimizer='adam', loss=BinaryFocalLoss(gamma=2), metrics=mean_iou)
-
-env = Environment()
-
-# config = conf.get_transunet()
-# config['image_size'] = 256
-# config["filters"] = 1
-# config['n_skip'] = 3
-# config['decoder_channels'] = [128, 64, 32, 16]
-# config['resnet']['n_layers'] = (3,4,9,12)
-# config['dropout'] = 0.1
-# config['grid'] = (28,28)
-# config["n_layers"] = 12
-#
-# network = transunet.TransUnet(config, trainable=False)
-# network.model.compile(optimizer="adam", loss=BinaryFocalLoss(gamma=2), metrics=mean_iou)
+model.compile(optimizer='adam', loss=segmentation_loss, metrics=mean_iou)
 
 step_size = int(2.0 * len(train_input_names) / args_dict["batch_size"])
 callbacks = []
@@ -209,7 +167,7 @@ callbacks.append(cp_callback)
 
 
 history = model.fit(
-    train_ds_batched, epochs=100, validation_data=val_ds_batched, callbacks=[callbacks]
+    train_ds, epochs=100, validation_data=val_ds, callbacks=[callbacks]
 )
 
 iou = history.history["mean_iou"]
