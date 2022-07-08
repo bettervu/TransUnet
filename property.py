@@ -110,28 +110,9 @@ builder = SM_UNet_Builder(
     dropout=0,  # dropout at feature extraction
 )
 
-def dice_per_class(y_true, y_pred, eps=1e-5):
-    intersect = tf.reduce_sum(y_true * y_pred)
-    y_sum = tf.reduce_sum(y_true * y_true)
-    z_sum = tf.reduce_sum(y_pred * y_pred)
-    loss = 1 - (2 * intersect + eps) / (z_sum + y_sum + eps)
-    return loss
-
-def gen_dice(y_true, y_pred):
-    """both tensors are [b, h, w, classes] and y_pred is in logit form"""
-    pred_tensor = tf.nn.softmax(y_pred)
-    # loss = 0.0
-    loss = dice_per_class(y_true[:, :, :, 2], pred_tensor[:, :, :, 2])
-    return loss
-
-def segmentation_loss(y_true, y_pred):
-    cce = tf.keras.losses.CategoricalCrossentropy(from_logits=True)
-    cross_entropy_loss = cce(y_true=y_true, y_pred=y_pred)
-    dice_loss = gen_dice(y_true, y_pred)
-    return 0.5 * cross_entropy_loss + 0.5 * dice_loss
 
 model = builder.build_model()
-model.compile(optimizer='adam', loss=segmentation_loss, metrics=mean_iou)
+model.compile(optimizer='adam', loss=dice_coef_binary_loss, metrics=mean_iou)
 
 step_size = int(2.0 * len(train_input_names) / args_dict["batch_size"])
 callbacks = []

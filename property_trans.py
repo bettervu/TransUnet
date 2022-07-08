@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 from train_helpers import mean_iou, create_dataset, dice_loss
 from focal_loss import BinaryFocalLoss
 import gcsfs
+from tensorflow.keras import backend as K
 FS = gcsfs.GCSFileSystem()
 
 import TransUnet.models.transunet as transunet
@@ -55,12 +56,6 @@ train_label_names = [
     for i in os.listdir(dataset_directory + "/train/")
     if i.endswith(".png")
 ]
-val_input_names = [
-    dataset_directory + "/val/" + i for i in os.listdir(dataset_directory + "/val/") if i.endswith(".png")
-]
-val_label_names = [
-    dataset_directory + "/val_labels/" + i for i in os.listdir(dataset_directory + "/val/") if i.endswith(".png")
-]
 
 val_input_names = [
     dataset_directory + "/val/" + i for i in os.listdir(dataset_directory + "/val/") if i.endswith(".png")
@@ -84,15 +79,15 @@ x_val = []
 y_val = []
 for i in range(len(val_input_names)):
     img = cv2.imread(val_input_names[i])
-    mask = plt.imread(train_label_names[i])
+    mask = plt.imread(val_label_names[i])
     mask = mask.reshape(256, 256, 1)
     mask = mask.astype(np.float32)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     x_val.append(img)
     y_val.append(mask)
 
-train_ds = tf.data.Dataset.from_tensor_slices((np.array(x_train), np.array(y_train))).batch(32, drop_remainder=True)
-val_ds = tf.data.Dataset.from_tensor_slices((np.array(x_val), np.array(y_val))).batch(32, drop_remainder=True)
+train_ds = tf.data.Dataset.from_tensor_slices((np.array(x_train), np.array(y_train))).batch(16, drop_remainder=True)
+val_ds = tf.data.Dataset.from_tensor_slices((np.array(x_val), np.array(y_val))).batch(16, drop_remainder=True)
 
 config = conf.get_transunet()
 config['image_size'] = 256
@@ -104,29 +99,19 @@ config['dropout'] = 0.1
 config['grid'] = (28,28)
 config["n_layers"] = 12
 
-def dice_per_class(y_true, y_pred, eps=1e-5):
-    intersect = tf.reduce_sum(y_true * y_pred)
-    y_sum = tf.reduce_sum(y_true * y_true)
-    z_sum = tf.reduce_sum(y_pred * y_pred)
-    loss = 1 - (2 * intersect + eps) / (z_sum + y_sum + eps)
-    return loss
+def dice_coef_binary(y_true, y_pred, smooth=1e-7):
+    y_true_f = K.flatten(K.one_hot(K.cast(y_true, 'int32'), num_classes=1)[...,1:])
+    y_pred_f = K.flatten(y_pred[...,1:])
+    intersect = K.sum(y_true_f * y_pred_f, axis=-1)
+    denom = K.sum(y_true_f + y_pred_f, axis=-1)
+    return K.mean((2. * intersect / (denom + smooth)))
 
-def gen_dice(y_true, y_pred):
-    """both tensors are [b, h, w, classes] and y_pred is in logit form"""
-    pred_tensor = tf.nn.softmax(y_pred)
-    loss = 0.0
-    for c in range(1):
-        loss += dice_per_class(y_true[:, :, :, c], pred_tensor[:, :, :, c])
-    return loss / 3
 
-def segmentation_loss(y_true, y_pred):
-    cce = tf.keras.losses.CategoricalCrossentropy(from_logits=True)
-    cross_entropy_loss = cce(y_true=y_true, y_pred=y_pred)
-    dice_loss = gen_dice(y_true, y_pred)
-    return 0.5 * cross_entropy_loss + 0.5 * dice_loss
+def dice_coef_binary_loss(y_true, y_pred):
+    return 1 - dice_coef_binary(y_true, y_pred)
 
 network = transunet.TransUnet(config, trainable=False)
-network.model.compile(optimizer="adam", loss=BinaryFocalLoss(gamma=2), metrics=mean_iou)
+network.model.compile(optimizer="adam", loss=dice_coef_binary_loss, metrics=mean_iou)
 
 step_size = int(2.0 * len(train_input_names) / args_dict["batch_size"])
 callbacks = []
@@ -161,7 +146,7 @@ callbacks.append(cp_callback)
 
 
 history = network.model.fit(
-    train_ds, epochs=200, validation_data=val_ds, callbacks=[callbacks]
+    train_ds, epochs=100, validation_data=val_ds, callbacks=[callbacks]
 )
 
 iou = history.history["mean_iou"]
