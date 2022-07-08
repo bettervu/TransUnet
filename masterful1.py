@@ -99,14 +99,14 @@ model_params = masterful.architecture.learn_architecture_params(
   model=network.model,
   task=masterful.enums.Task.SEMANTIC_SEGMENTATION,
   input_range=masterful.enums.ImageRange.ZERO_ONE,
-  num_classes=1,
+  num_classes=3,
   prediction_logits=True,
 )
 training_dataset_params = masterful.data.learn_data_params(
   dataset=dataset,
   task=masterful.enums.Task.SEMANTIC_SEGMENTATION,
   image_range=masterful.enums.ImageRange.ZERO_ONE,
-  num_classes=1,
+  num_classes=3,
   sparse_labels=False,
 )
 
