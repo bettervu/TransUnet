@@ -14,6 +14,7 @@ from focal_loss import BinaryFocalLoss
 import gcsfs
 
 from dTurk.models.sm_models.losses import DiceLoss
+from dTurk.metrics import WeightedMeanIoU
 
 FS = gcsfs.GCSFileSystem()
 env = Environment()
@@ -130,9 +131,12 @@ def segmentation_loss(y_true, y_pred):
     return 0.5 * cross_entropy_loss + 0.5 * dice_loss
 
 loss = DiceLoss(class_weights=[1,1,1], class_indexes=[0,1,2], per_image=False)
+metric = WeightedMeanIoU(
+            num_classes=3, class_weights=[1,1,1], name="wt_mean_iou"
+        )
 
 model = builder.build_model()
-model.compile(optimizer='adam', loss=loss, metrics=mean_iou)
+model.compile(optimizer='adam', loss=BinaryFocalLoss(gamma=2), metrics=metric)
 
 env = Environment()
 
@@ -166,14 +170,12 @@ cp_callback = tf.keras.callbacks.ModelCheckpoint(
             save_best_only=True)
 callbacks.append(cp_callback)
 
-
-
 history = model.fit(
     train_ds_batched, epochs=100, validation_data=val_ds_batched, callbacks=[callbacks]
 )
 
-iou = history.history["mean_iou"]
-val_iou = history.history["val_mean_iou"]
+iou = history.history["wt_mean_iou"]
+val_iou = history.history["val_wt_mean_iou"]
 loss = history.history["loss"]
 val_loss = history.history["val_loss"]
 
