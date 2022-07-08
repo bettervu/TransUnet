@@ -7,8 +7,7 @@ import tensorflow as tf
 from bp import Environment
 from dTurk.utils.clr_callback import CyclicLR
 from tensorflow.keras.callbacks import EarlyStopping
-import matplotlib.pyplot as plt
-from train_helpers import mean_iou, create_dataset, dice_loss
+from train_helpers import mean_iou, create_dataset
 from dTurk.models.SM_UNet import SM_UNet_Builder
 from focal_loss import BinaryFocalLoss
 import gcsfs
@@ -18,9 +17,6 @@ from dTurk.metrics import WeightedMeanIoU
 
 FS = gcsfs.GCSFileSystem()
 env = Environment()
-
-import TransUnet.models.transunet as transunet
-import TransUnet.experiments.config as conf
 
 parser = argparse.ArgumentParser(description="Property")
 parser.add_argument("dataset")
@@ -68,32 +64,6 @@ val_label_names = [
     dataset_directory + "/val_labels/" + i for i in os.listdir(dataset_directory + "/val/") if i.endswith(".png")
 ]
 
-# x_train = []
-# y_train = []
-# for i in range(len(train_input_names)):
-#     img = cv2.imread(train_input_names[i])
-#     mask = cv2.imread(train_label_names[i])
-#     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-#     img = img.reshape(1,256,256,3)
-#     mask = cv2.cvtColor(mask, cv2.COLOR_BGR2RGB)
-#     mask = img.reshape(1, 256, 256, 3)
-#     x_train.append(img)
-#     y_train.append(mask)
-#
-# x_val = []
-# y_val = []
-# for i in range(len(val_input_names)):
-#     img = cv2.imread(val_input_names[i])
-#     mask = cv2.imread(val_label_names[i])
-#     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-#     img = img.reshape(1,256,256,3)
-#     mask = cv2.cvtColor(mask, cv2.COLOR_BGR2RGB)
-#     x_val.append(img)
-#     y_val.append(mask)
-#
-# train_ds = tf.data.Dataset.from_tensor_slices((np.array(x_train), np.array(y_train)))
-# val_ds = tf.data.Dataset.from_tensor_slices((np.array(x_train), np.array(y_train)))
-
 train_ds_batched, val_ds_batched = create_dataset(train_input_names, val_input_names, train_augmentation=args_dict["train_augmentation_file"])
 
 builder = SM_UNet_Builder(
@@ -105,7 +75,7 @@ builder = SM_UNet_Builder(
     encoder_weights="imagenet",
     decoder_block_type="upsampling",
     head_dropout=0,  # dropout at head
-    dropout=0,  # dropout at feature extraction
+    dropout=0,
 )
 
 def dice_per_class(y_true, y_pred, eps=1e-5):
@@ -116,8 +86,6 @@ def dice_per_class(y_true, y_pred, eps=1e-5):
     return loss
 
 def gen_dice(y_true, y_pred):
-    """both tensors are [b, h, w, classes] and y_pred is in logit form"""
-    # [b, h, w, classes]
     pred_tensor = tf.nn.softmax(y_pred)
     loss = 0.0
     for c in range(3):
@@ -137,8 +105,6 @@ metric = WeightedMeanIoU(
 
 model = builder.build_model()
 model.compile(optimizer='adam', loss=BinaryFocalLoss(gamma=2), metrics=metric)
-
-env = Environment()
 
 step_size = int(2.0 * len(train_input_names) / args_dict["batch_size"])
 callbacks = []
@@ -184,5 +150,4 @@ df["loss"] = loss
 df["val_loss"] = val_loss
 
 df.to_csv("parcelUnet.csv")
-
 model.save("my_model")
