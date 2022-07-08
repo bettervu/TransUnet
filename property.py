@@ -12,6 +12,9 @@ from train_helpers import mean_iou, create_dataset, dice_loss
 from dTurk.models.SM_UNet import SM_UNet_Builder
 from focal_loss import BinaryFocalLoss
 import gcsfs
+
+from dTurk.models.sm_models.losses import DiceLoss
+
 FS = gcsfs.GCSFileSystem()
 env = Environment()
 
@@ -126,10 +129,10 @@ def segmentation_loss(y_true, y_pred):
     dice_loss = gen_dice(y_true, y_pred)
     return 0.5 * cross_entropy_loss + 0.5 * dice_loss
 
-
+loss = DiceLoss(class_weights=[1,1,1], class_indexes=[0,1,2], per_image=False)
 
 model = builder.build_model()
-model.compile(optimizer='adam', loss=BinaryFocalLoss(gamma=2), metrics=mean_iou)
+model.compile(optimizer='adam', loss=loss, metrics=mean_iou)
 
 env = Environment()
 
