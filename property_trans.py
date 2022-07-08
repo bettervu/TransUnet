@@ -126,7 +126,7 @@ def segmentation_loss(y_true, y_pred):
     return 0.5 * cross_entropy_loss + 0.5 * dice_loss
 
 network = transunet.TransUnet(config, trainable=False)
-network.model.compile(optimizer="adam", loss=segmentation_loss, metrics=mean_iou)
+network.model.compile(optimizer="adam", loss=BinaryFocalLoss(gamma=2), metrics=mean_iou)
 
 step_size = int(2.0 * len(train_input_names) / args_dict["batch_size"])
 callbacks = []
