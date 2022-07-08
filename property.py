@@ -121,7 +121,7 @@ def gen_dice(y_true, y_pred):
     """both tensors are [b, h, w, classes] and y_pred is in logit form"""
     pred_tensor = tf.nn.softmax(y_pred)
     # loss = 0.0
-    loss = dice_per_class(y_true[:, :, :, 1], pred_tensor[:, :, :, 1])
+    loss = dice_per_class(y_true[:, :, :, 2], pred_tensor[:, :, :, 2])
     return loss
 
 def segmentation_loss(y_true, y_pred):
