@@ -7,7 +7,7 @@ import tensorflow as tf
 from bp import Environment
 from dTurk.utils.clr_callback import CyclicLR
 from tensorflow.keras.callbacks import EarlyStopping
-from train_helpers import mean_iou, create_dataset
+from train_helpers import mean_iou, create_dataset, dice_loss
 from dTurk.models.SM_UNet import SM_UNet_Builder
 from focal_loss import BinaryFocalLoss
 import gcsfs
@@ -104,7 +104,7 @@ metric = WeightedMeanIoU(
         )
 
 model = builder.build_model()
-model.compile(optimizer='adam', loss=segmentation_loss, metrics=metric)
+model.compile(optimizer='adam', loss=dice_loss, metrics=metric)
 
 step_size = int(2.0 * len(train_input_names) / args_dict["batch_size"])
 callbacks = []
