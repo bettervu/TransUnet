@@ -29,7 +29,7 @@ parser.add_argument("--val_augmentation_file", type=str, default=None)
 parser.add_argument("--monitor", type=str, default="val_loss")
 parser.add_argument("--lr", type=float, default=0.005)
 parser.add_argument("--batch_size", type=int, default=32)
-parser.add_argument("--patience", type=int, default=20)
+parser.add_argument("--patience", type=int, default=6)
 parser.add_argument("--save_path", type=str, default="property")
 
 args, _ = parser.parse_known_args()
