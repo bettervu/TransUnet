@@ -4,6 +4,8 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from tensorflow.keras import Sequential
+from dTurk.utils.clr_callback import CyclicLR
+from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.applications import ResNet152V2
 from tensorflow.keras.layers import Input,Conv2D,Dropout,Reshape
 
@@ -41,6 +43,11 @@ X = [i/255.0 for i in X]
 X = np.array(X)
 y = np.array(df["coords_vals"].to_list())
 
+x_train = np.asarray(X[:-100])
+y_train = np.asarray(X[:-100])
+x_val = np.asarray(X[-100:])
+y_val = np.asarray(X[-100:])
+
 model = Sequential([
     Input(shape=(256,256,3)),
     ResNet152V2(include_top=False, input_shape=(256,256,3)),
@@ -58,7 +65,38 @@ model.compile(optimizer='adam',
              metrics=['accuracy'])
 
 
-H = model.fit(np.asarray(X[:-100]), np.asarray(y[:-100]), validation_data=(X[100:], y[100:]), batch_size=16, epochs=100,verbose=1)
+step_size = int(2.0 * len(x_train) / 10)
+callbacks = []
+cyclic_lr = CyclicLR(
+    base_lr=0.05 / 10.0,
+    max_lr=0.05,
+    step_size=step_size,
+    mode="triangular2",
+    cyclic_momentum=False,
+    max_momentum=False,
+    base_momentum=0.8,
+)
+callbacks.append(cyclic_lr)
+
+early_stopping = EarlyStopping(
+    monitor="val_loss",
+    mode="min" if "loss" in x_train else "max",
+    patience=12,
+    verbose=1,
+    restore_best_weights=True,
+)
+callbacks.append(early_stopping)
+
+cp_callback = tf.keras.callbacks.ModelCheckpoint(
+            filepath="CKPT/checkpoint/",
+            save_weights_only=True,
+            monitor='val_loss',
+            mode='min',
+            save_best_only=True)
+callbacks.append(cp_callback)
+
+
+H = model.fit(x_train, y_train, validation_data=(x_val, y_val), batch_size=16, epochs=100,verbose=1, callbacks=[callbacks])
 
 loss = H.history["loss"]
 val_loss = H.history["val_loss"]
