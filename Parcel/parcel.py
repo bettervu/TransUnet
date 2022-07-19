@@ -58,7 +58,7 @@ model.compile(optimizer='adam',
              metrics=['accuracy'])
 
 
-H = model.fit(np.asarray(X[:-50]), np.asarray(y[:-50]), validation_data=(X[50:], y[50:]), batch_size=16, epochs=30,verbose=1)
+H = model.fit(np.asarray(X[:-50]), np.asarray(y[:-50]), validation_data=(X[50:], y[50:]), batch_size=16, epochs=100,verbose=1)
 
 loss = H.history["loss"]
 val_loss = H.history["val_loss"]
