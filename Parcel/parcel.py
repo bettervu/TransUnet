@@ -44,9 +44,9 @@ X = np.array(X)
 y = np.array(df["coords_vals"].to_list())
 
 x_train = np.asarray(X[:-100])
-y_train = np.asarray(X[:-100])
+y_train = np.asarray(y[:-100])
 x_val = np.asarray(X[-100:])
-y_val = np.asarray(X[-100:])
+y_val = np.asarray(y[-100:])
 
 model = Sequential([
     Input(shape=(256,256,3)),
