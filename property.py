@@ -28,7 +28,7 @@ parser.add_argument("--train_augmentation_file", type=str, default=None)
 parser.add_argument("--val_augmentation_file", type=str, default=None)
 parser.add_argument("--monitor", type=str, default="val_loss")
 parser.add_argument("--lr", type=float, default=0.005)
-parser.add_argument("--batch_size", type=int, default=12)
+parser.add_argument("--batch_size", type=int, default=32)
 parser.add_argument("--patience", type=int, default=6)
 parser.add_argument("--save_path", type=str, default="property")
 
@@ -64,7 +64,6 @@ val_label_names = [
     dataset_directory + "/val_labels/" + i for i in os.listdir(dataset_directory + "/val/") if i.endswith(".png")
 ]
 
-print(val_label_names)
 train_ds_batched, val_ds_batched = create_dataset(train_input_names, val_input_names, train_augmentation=args_dict["train_augmentation_file"])
 
 builder = SM_UNet_Builder(
@@ -105,7 +104,7 @@ metric = WeightedMeanIoU(
         )
 
 model = builder.build_model()
-model.compile(optimizer='adam', loss=BinaryFocalLoss(gamma=2), metrics=metric)
+model.compile(optimizer='adam', loss=loss, metrics=metric)
 
 step_size = int(2.0 * len(train_input_names) / args_dict["batch_size"])
 callbacks = []
