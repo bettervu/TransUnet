@@ -28,7 +28,7 @@ parser.add_argument("--train_augmentation_file", type=str, default=None)
 parser.add_argument("--val_augmentation_file", type=str, default=None)
 parser.add_argument("--monitor", type=str, default="val_loss")
 parser.add_argument("--lr", type=float, default=0.005)
-parser.add_argument("--batch_size", type=int, default=32)
+parser.add_argument("--batch_size", type=int, default=12)
 parser.add_argument("--patience", type=int, default=6)
 parser.add_argument("--save_path", type=str, default="property")
 
@@ -137,7 +137,7 @@ cp_callback = tf.keras.callbacks.ModelCheckpoint(
 callbacks.append(cp_callback)
 
 history = model.fit(
-    train_ds_batched, epochs=100, validation_data=val_ds_batched, callbacks=[callbacks]
+    train_ds_batched, epochs=30, validation_data=val_ds_batched, callbacks=[callbacks]
 )
 
 iou = history.history["wt_mean_iou"]
