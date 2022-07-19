@@ -60,8 +60,6 @@ model.compile(optimizer='adam',
 
 H = model.fit(np.asarray(X[:-50]), np.asarray(y[:-50]), validation_data=(X[50:], y[50:]), batch_size=16, epochs=30,verbose=1)
 
-iou = H.history["wt_mean_iou"]
-val_iou = H.history["val_wt_mean_iou"]
 loss = H.history["loss"]
 val_loss = H.history["val_loss"]
 
