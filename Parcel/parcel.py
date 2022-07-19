@@ -41,11 +41,6 @@ X = [i/255.0 for i in X]
 X = np.array(X)
 y = np.array(df["coords_vals"].to_list())
 
-x_train = X[:-100]
-y_train = y[:-100]
-x_val = X[-100:]
-y_val = y[-100:]
-
 model = Sequential([
     Input(shape=(256,256,3)),
     ResNet152V2(include_top=False, input_shape=(256,256,3)),
@@ -63,7 +58,7 @@ model.compile(optimizer='adam',
              metrics=['accuracy'])
 
 
-H = model.fit(x_train,y_train, validation_data=(x_val,y_val), batch_size=16, epochs=100,verbose=1)
+H = model.fit(np.asarray(X[:-50]), np.asarray(y[:-50]), validation_data=(X[50:], y[50:]), batch_size=16, epochs=30,verbose=1)
 
 loss = H.history["loss"]
 val_loss = H.history["val_loss"]
