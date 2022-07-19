@@ -64,6 +64,7 @@ val_label_names = [
     dataset_directory + "/val_labels/" + i for i in os.listdir(dataset_directory + "/val/") if i.endswith(".png")
 ]
 
+print(val_label_names)
 train_ds_batched, val_ds_batched = create_dataset(train_input_names, val_input_names, train_augmentation=args_dict["train_augmentation_file"])
 
 builder = SM_UNet_Builder(
