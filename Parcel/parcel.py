@@ -65,13 +65,8 @@ model.compile(optimizer='adam',
 
 callbacks = []
 
-early_stopping = EarlyStopping(
-    monitor="val_loss",
-    mode="min" if "loss" in "val_loss" else "max",
-    patience=24,
-    verbose=1,
-    restore_best_weights=True,
-)
+early_stopping = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=24)
+
 callbacks.append(early_stopping)
 
 cp_callback = tf.keras.callbacks.ModelCheckpoint(
