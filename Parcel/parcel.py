@@ -64,19 +64,7 @@ model.compile(optimizer='adam',
              loss='mse',
              metrics=['accuracy'])
 
-
-step_size = int(2.0 * len(x_train) / 10)
 callbacks = []
-cyclic_lr = CyclicLR(
-    base_lr=0.05 / 10.0,
-    max_lr=0.05,
-    step_size=step_size,
-    mode="triangular2",
-    cyclic_momentum=False,
-    max_momentum=False,
-    base_momentum=0.8,
-)
-callbacks.append(cyclic_lr)
 
 early_stopping = EarlyStopping(
     monitor="val_loss",
@@ -93,8 +81,8 @@ cp_callback = tf.keras.callbacks.ModelCheckpoint(
             monitor='val_loss',
             mode='min',
             save_best_only=True)
-callbacks.append(cp_callback)
 
+callbacks.append(cp_callback)
 
 H = model.fit(x_train, y_train, validation_data=(x_val, y_val), batch_size=16, epochs=100,verbose=1, callbacks=[callbacks])
 
