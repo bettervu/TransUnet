@@ -30,7 +30,7 @@ df["coords_vals"]=df["coords_vals"].apply(extend_list)
 
 
 images = []
-for i in range(904):
+for i in range(4665):
     img = cv2.imread(f"test_parcel/train/{i}.png")
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     images.append(img)
