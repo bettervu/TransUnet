@@ -68,7 +68,7 @@ callbacks = []
 early_stopping = EarlyStopping(
     monitor="val_loss",
     mode="min" if "loss" in "val_loss" else "max",
-    patience=12,
+    patience=24,
     verbose=1,
     restore_best_weights=True,
 )
