@@ -2,11 +2,18 @@ import cv2
 import gcsfs
 import numpy as np
 import pandas as pd
+import tensorflow as tf
 from tensorflow.keras import Sequential
 from tensorflow.keras.applications import ResNet152V2
 from tensorflow.keras.layers import Input,Conv2D,Dropout,Reshape
 
 FS = gcsfs.GCSFileSystem()
+
+try:
+    gpus = tf.config.list_physical_devices("GPU")
+    tf.config.set_visible_devices(gpus[2], "GPU")
+except:
+    print("Gpus not found")
 
 def extend_list(lol):
     if len(lol) > 50:
