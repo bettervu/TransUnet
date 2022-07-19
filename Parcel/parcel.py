@@ -4,7 +4,6 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from tensorflow.keras import Sequential
-from dTurk.utils.clr_callback import CyclicLR
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.applications import ResNet152V2
 from tensorflow.keras.layers import Input,Conv2D,Dropout,Reshape
