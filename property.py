@@ -137,7 +137,7 @@ cp_callback = tf.keras.callbacks.ModelCheckpoint(
 callbacks.append(cp_callback)
 
 history = model.fit(
-    train_ds_batched, epochs=30, validation_data=val_ds_batched, callbacks=[callbacks]
+    train_ds_batched, epochs=3, validation_data=val_ds_batched, callbacks=[callbacks]
 )
 
 iou = history.history["wt_mean_iou"]
