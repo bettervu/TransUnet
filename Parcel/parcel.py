@@ -1,5 +1,7 @@
+import os
 import cv2
 import gcsfs
+import tarfile
 import numpy as np
 import pandas as pd
 import tensorflow as tf
@@ -80,7 +82,7 @@ model = Sequential([
 ])
 
 optimizer = tf.keras.optimizers.Adam(learning_rate=0.001, decay=0.0007)
-loss = tf.keras.losses.MeanSquaredError()
+loss = tf.keras.losses.MeanAbsoluteError()
 
 model.compile(optimizer, loss)
 
@@ -101,3 +103,6 @@ df["val_loss"] = val_loss
 df.to_csv("parcelUnet.csv")
 
 model.save("my_model")
+
+with tarfile.open("my_model.tar.gz", "w:gz") as tar:
+    tar.add("my_model", arcname=os.path.basename("my_model"))
