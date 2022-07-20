@@ -23,20 +23,25 @@ def extend_list(lol):
     lol = np.array([(np.array(i).flatten())/(256) for i in lol]).flatten()
     return lol
 
+def flatten(lol):
+    lol = np.array([(np.array(i).flatten())/(256) for i in lol]).flatten()
+    return lol
+
 
 df=pd.read_csv("dataset.csv")
 df["coords_vals"]=df["coords_vals"].apply(eval)
-df["coords_vals"]=df["coords_vals"].apply(extend_list)
+df = df[df["after_cleanup_len"]==4]
+df["coords_vals"]=df["coords_vals"].apply(flatten)
+# df["coords_vals"]=df["coords_vals"].apply(extend_list)
+
+# images = []
+# for i in range(4665):
+#     img = cv2.imread(f"test_parcel/train/{i}.png")
+#     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+#     images.append(img)
 
 
-images = []
-for i in range(4665):
-    img = cv2.imread(f"test_parcel/train/{i}.png")
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    images.append(img)
-
-
-X = images
+X = df["images"].to_list()
 X = [i/255.0 for i in X]
 X = np.array(X)
 y = np.array(df["coords_vals"].to_list())
@@ -50,7 +55,7 @@ model = Sequential([
     Conv2D(256, 2, 2, activation='relu'),
     Dropout(0.05),
     Conv2D(100, 2, 2),
-    Reshape((100,))
+    Reshape((8,))
 ])
 
 model.compile(optimizer='adam',
