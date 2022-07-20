@@ -26,11 +26,11 @@ def extend_list(lol):
         lol = sample(lol, 10)
     else:
         lol.extend((10-len(lol))*[[0,0]])
-    lol = np.array([(np.array(i).flatten())/(256) for i in lol]).flatten()
+    lol = np.array([(np.array(i).flatten()) for i in lol]).flatten()
     return lol
 
 def flatten(lol):
-    lol = np.array([(np.array(i).flatten())/(256) for i in lol]).flatten()
+    lol = np.array([(np.array(i).flatten()) for i in lol]).flatten()
     return lol
 
 
@@ -89,7 +89,7 @@ early_stopping = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patien
 
 callbacks.append(early_stopping)
 
-H = model.fit(np.asarray(X[:-50]), np.asarray(y[:-50]), validation_data=(X[50:], y[50:]), batch_size=16, epochs=100,verbose=1, callbacks=callbacks)
+H = model.fit(np.asarray(X[:-50]), np.asarray(y[:-50]), validation_data=(X[50:], y[50:]), batch_size=16, epochs=30,verbose=1, callbacks=callbacks)
 
 loss = H.history["loss"]
 val_loss = H.history["val_loss"]
