@@ -42,7 +42,7 @@ for i in range(4665):
 
 df["images"] = images
 
-df = df[df["after_cleanup_len"]<=10]
+df = df[(df["delta_percent"]<=5) & (df["after_cleanup_len"]<=10)]
 df["coords_vals"]=df["coords_vals"].apply(extend_list)
 
 X = df["images"].to_list()
