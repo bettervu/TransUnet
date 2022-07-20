@@ -30,16 +30,18 @@ def flatten(lol):
 
 df=pd.read_csv("dataset.csv")
 df["coords_vals"]=df["coords_vals"].apply(eval)
-df = df[df["after_cleanup_len"]==4]
 df["coords_vals"]=df["coords_vals"].apply(flatten)
 # df["coords_vals"]=df["coords_vals"].apply(extend_list)
 
-# images = []
-# for i in range(4665):
-#     img = cv2.imread(f"test_parcel/train/{i}.png")
-#     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-#     images.append(img)
+images = []
+for i in range(4665):
+    img = cv2.imread(f"test_parcel/train/{i}.png")
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    images.append(img)
 
+df["images"] = images
+
+df = df[df["after_cleanup_len"]==4]
 
 X = df["images"].to_list()
 X = [i/255.0 for i in X]
