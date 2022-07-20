@@ -55,6 +55,7 @@ model = Sequential([
     ResNet152V2(include_top=False, input_shape=(256,256,3)),
     Conv2D(512, 3, padding='same', activation='relu'),
     Conv2D(512, 3, padding='same', activation='relu'),
+    Conv2D(512, 3, padding='same', activation='relu'),
     Conv2D(256, 3, 2, padding='same', activation='relu'),
     Conv2D(256, 2, 2, activation='relu'),
     Dropout(0.05),
