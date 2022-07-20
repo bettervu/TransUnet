@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from tensorflow.keras import Sequential
+from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.applications import ResNet152V2
 from tensorflow.keras.layers import Input,Conv2D,Dropout,Reshape
 
@@ -64,8 +65,12 @@ model.compile(optimizer='adam',
              loss='mse',
              metrics=['accuracy'])
 
+callbacks = []
+early_stopping = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=12)
 
-H = model.fit(np.asarray(X[:-50]), np.asarray(y[:-50]), validation_data=(X[50:], y[50:]), batch_size=16, epochs=100,verbose=1)
+callbacks.append(early_stopping)
+
+H = model.fit(np.asarray(X[:-50]), np.asarray(y[:-50]), validation_data=(X[50:], y[50:]), batch_size=16, epochs=100,verbose=1, callbacks=callbacks)
 
 loss = H.history["loss"]
 val_loss = H.history["val_loss"]
