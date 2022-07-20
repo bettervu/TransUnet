@@ -66,7 +66,7 @@ model.compile(optimizer='adam',
              metrics=['accuracy'])
 
 callbacks = []
-early_stopping = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=12)
+early_stopping = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=5)
 
 callbacks.append(early_stopping)
 
