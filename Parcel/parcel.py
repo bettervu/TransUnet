@@ -6,7 +6,7 @@ import tensorflow as tf
 from random import sample
 from tensorflow.keras import Sequential
 from tensorflow.keras.callbacks import EarlyStopping
-from tensorflow.keras.applications import ResNet152V2, InceptionV3, ResNet50
+from tensorflow.keras.applications import ResNet152V2
 from tensorflow.keras.layers import Input,Conv2D,Dropout,Reshape
 
 FS = gcsfs.GCSFileSystem()
@@ -52,7 +52,7 @@ y = np.array(df["coords_vals"].to_list())
 
 model = Sequential([
     Input(shape=(256,256,3)),
-    ResNet50(include_top=False, input_shape=(256,256,3), weights='imagenet'),
+    ResNet152V2(include_top=False, input_shape=(256,256,3)),
     Conv2D(512, 3, padding='same', activation='relu'),
     Conv2D(512, 3, padding='same', activation='relu'),
     Conv2D(256, 3, 2, padding='same', activation='relu'),
