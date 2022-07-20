@@ -3,6 +3,7 @@ import gcsfs
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+from random import sample
 from tensorflow.keras import Sequential
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.applications import ResNet152V2
@@ -17,10 +18,10 @@ except:
     print("Gpus not found")
 
 def extend_list(lol):
-    if len(lol) > 50:
-        lol = lol[:50]
+    if len(lol) >= 10:
+        lol = sample(lol, 10)
     else:
-        lol.extend((50-len(lol))*[[0,0]])
+        lol.extend((10-len(lol))*[[0,0]])
     lol = np.array([(np.array(i).flatten())/(256) for i in lol]).flatten()
     return lol
 
@@ -31,8 +32,7 @@ def flatten(lol):
 
 df=pd.read_csv("dataset.csv")
 df["coords_vals"]=df["coords_vals"].apply(eval)
-df["coords_vals"]=df["coords_vals"].apply(flatten)
-# df["coords_vals"]=df["coords_vals"].apply(extend_list)
+# df["coords_vals"]=df["coords_vals"].apply(flatten)
 
 images = []
 for i in range(4665):
@@ -42,7 +42,8 @@ for i in range(4665):
 
 df["images"] = images
 
-df = df[df["after_cleanup_len"]==4]
+df = df[df["after_cleanup_len"]<=10]
+df["coords_vals"]=df["coords_vals"].apply(extend_list)
 
 X = df["images"].to_list()
 X = [i/255.0 for i in X]
@@ -51,14 +52,14 @@ y = np.array(df["coords_vals"].to_list())
 
 model = Sequential([
     Input(shape=(256,256,3)),
-    ResNet152V2(include_top=False, input_shape=(256,256,3)),
+    ResNet152V2(include_top=True, input_shape=(256,256,3)),
     Conv2D(512, 3, padding='same', activation='relu'),
     Conv2D(512, 3, padding='same', activation='relu'),
     Conv2D(256, 3, 2, padding='same', activation='relu'),
     Conv2D(256, 2, 2, activation='relu'),
     Dropout(0.05),
-    Conv2D(8, 2, 2),
-    Reshape((8,))
+    Conv2D(20, 2, 2),
+    Reshape((20,))
 ])
 
 model.compile(optimizer='adam',
