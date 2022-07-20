@@ -9,6 +9,10 @@ from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.applications import ResNet152V2
 from tensorflow.keras.layers import Input,Conv2D,Dropout,Reshape
 
+from functools import reduce
+import operator
+import math
+
 FS = gcsfs.GCSFileSystem()
 
 try:
@@ -32,7 +36,6 @@ def flatten(lol):
 
 df=pd.read_csv("dataset.csv")
 df["coords_vals"]=df["coords_vals"].apply(eval)
-# df["coords_vals"]=df["coords_vals"].apply(flatten)
 
 images = []
 for i in range(4665):
@@ -40,32 +43,46 @@ for i in range(4665):
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     images.append(img)
 
-df["images"] = images
+def distance(l1, l2=[0,0]):
+    d = ((l1[0] - l2[0])**2 + (l1[1] - l2[1])**2)**0.5
+    return d
 
-df = df[(df["delta_percent"]<=5) & (df["after_cleanup_len"]<=10)]
-df["coords_vals"]=df["coords_vals"].apply(extend_list)
+def sort_coords(coords):
+    center = tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), coords), [len(coords)] * 2))
+    coords = (sorted(coords, key=lambda coord: (-135 - math.degrees(math.atan2(*tuple(map(operator.sub, coord, center))[::-1]))) % 360))
+    dst = list(map(distance,coords))
+    origin = dst.index(min(dst))
+    final_coords = coords[origin:]+coords[:origin]
+    return final_coords
+
+df["images"] = images
+df = df[df["after_cleanup_len"]==4]
+df["sorted_coords"] = df["coords_vals"].apply(sort_coords)
+df["sorted_coords"]=df["sorted_coords"].apply(flatten)
+
+# df["coords_vals"]=df["coords_vals"].apply(extend_list)
 
 X = df["images"].to_list()
 X = [i/255.0 for i in X]
 X = np.array(X)
-y = np.array(df["coords_vals"].to_list())
+y = np.array(df["sorted_coords"].to_list())
 
 model = Sequential([
     Input(shape=(256,256,3)),
     ResNet152V2(include_top=False, input_shape=(256,256,3)),
     Conv2D(512, 3, padding='same', activation='relu'),
     Conv2D(512, 3, padding='same', activation='relu'),
-    Conv2D(512, 3, padding='same', activation='relu'),
     Conv2D(256, 3, 2, padding='same', activation='relu'),
     Conv2D(256, 2, 2, activation='relu'),
     Dropout(0.05),
-    Conv2D(20, 2, 2),
-    Reshape((20,))
+    Conv2D(8, 2, 2),
+    Reshape((8,))
 ])
 
-model.compile(optimizer='adam',
-             loss='mse',
-             metrics=['accuracy'])
+optimizer = tf.keras.optimizers.Adam(learning_rate=0.001, decay=0.0007)
+loss = tf.keras.losses.MeanSquaredError()
+
+model.compile(optimizer, loss)
 
 callbacks = []
 early_stopping = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=5)
