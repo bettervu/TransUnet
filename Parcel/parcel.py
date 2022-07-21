@@ -63,7 +63,7 @@ def sort_coords(coords):
 
 
 df["images"] = images
-df = df[df["after_cleanup_len"] == 10]
+df = df[df["after_cleanup_len"] <= 10]
 df["sorted_coords"] = df["coords_vals"].apply(sort_coords)
 df["sorted_coords"] = df["sorted_coords"].apply(extend_list)
 
