@@ -68,7 +68,7 @@ df = pd.read_csv("dataset.csv")
 df["coords_vals"] = df["coords_vals"].apply(eval)
 
 images = []
-for i in range(4665):
+for i in range(4473):
     img = cv2.imread(f"test_parcel/train/{i}.png")
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     images.append(img)
