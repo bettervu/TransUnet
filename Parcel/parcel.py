@@ -32,6 +32,32 @@ def extend_list(lol):
     lol = np.array([(np.array(i).flatten()) for i in lol]).flatten()
     return lol
 
+def interpolate(lol, n=10):
+
+    if len(lol) >= n:
+        lol = sample(lol, n)
+    else:
+        final_x = []
+        final_y = []
+        x = [point[0] for point in lol]
+        y = [point[1] for point in lol]
+        x.append(x[0])
+        y.append(y[0])
+        n_to_inter_most = int(n/len(lol))
+        n_to_inter_last = n%len(lol)
+        for x_r in range(len(x)-1):
+            x1,y1,x2,y2 = x[x_r],y[x_r],x[x_r+1],y[x_r+1]
+            if x_r==len(x)-2:
+                steps = np.linspace(0, 1, n_to_inter_most+n_to_inter_last+1)
+            else:
+                steps = np.linspace(0, 1, n_to_inter_most+1)
+            current_x_to_interpolate = [(x1 + (x2-x1) * (step)) for step in steps]
+            current_y_to_interpolate = [(y1 + (y2-y1) * (step)) for step in steps]
+            final_x.extend(current_x_to_interpolate[:-1])
+            final_y.extend(current_y_to_interpolate[:-1])
+        lol = np.array([np.array([final_x[pt], final_y[pt]]) for pt in range(len(final_x))])
+    return lol
+
 
 def flatten(lol):
     lol = np.array([(np.array(i).flatten()) for i in lol]).flatten()
@@ -65,14 +91,16 @@ def sort_coords(coords):
 df["images"] = images
 df = df[df["after_cleanup_len"] <= 10]
 df["sorted_coords"] = df["coords_vals"].apply(sort_coords)
-df["sorted_coords"] = df["sorted_coords"].apply(extend_list)
+df["interpolate"] = df["sorted_coords"].apply(interpolate)
+df["interpolate"] = df["interpolate"].apply(sort_coords)
+df["interpolate"] = df["interpolate"].apply(flatten)
 
 # df["coords_vals"]=df["coords_vals"].apply(extend_list)
 
 X = df["images"].to_list()
 X = [i / 255.0 for i in X]
 X = np.array(X)
-y = np.array(df["sorted_coords"].to_list())
+y = np.array(df["interpolate"].to_list())
 
 model = Sequential([
     Input(shape=(256, 256, 3)),
@@ -92,7 +120,7 @@ loss = tf.keras.losses.MeanAbsoluteError()
 model.compile(optimizer, loss)
 
 callbacks = []
-early_stopping = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=5)
+early_stopping = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=20)
 
 callbacks.append(early_stopping)
 
