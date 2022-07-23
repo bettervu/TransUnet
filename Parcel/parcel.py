@@ -32,7 +32,7 @@ def extend_list(lol):
     return lol
 
 
-def interpolate(lol, n=10, type="same"):
+def interpolate(lol, n=10, type="linear"):
 
     if len(lol) >= n:
         lol = sample(lol, n)
