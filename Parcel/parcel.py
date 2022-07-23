@@ -146,7 +146,7 @@ model = Sequential(
 )
 
 optimizer = tf.keras.optimizers.Adam(learning_rate=0.001, decay=0.0007)
-loss = tf.keras.losses.MeanSquaredError()
+loss = tf.keras.losses.MeanAbsoluteError()
 
 model.compile(optimizer, loss)
 
@@ -155,7 +155,7 @@ early_stopping = EarlyStopping(monitor="val_loss", mode="min", verbose=1, patien
 
 callbacks.append(early_stopping)
 
-H = model.fit(train, validation_data=val, epochs=10, verbose=1, callbacks=callbacks)
+H = model.fit(train, validation_data=val, epochs=20, verbose=1, callbacks=callbacks)
 
 
 loss = H.history["loss"]
