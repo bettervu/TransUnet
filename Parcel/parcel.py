@@ -155,7 +155,7 @@ early_stopping = EarlyStopping(monitor="val_loss", mode="min", verbose=1, patien
 
 callbacks.append(early_stopping)
 
-H = model.fit(train, validation_data=val, epochs=20, verbose=1, callbacks=callbacks)
+H = model.fit(train, validation_data=val, epochs=40, verbose=1, callbacks=callbacks)
 
 
 loss = H.history["loss"]
