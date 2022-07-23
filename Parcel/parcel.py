@@ -32,7 +32,7 @@ def extend_list(lol):
     return lol
 
 
-def interpolate(lol, n=10, type="linear"):
+def interpolate(lol, n=20, type="linear"):
 
     if len(lol) >= n:
         lol = sample(lol, n)
@@ -94,7 +94,7 @@ def load_image(x):
 df = pd.read_csv("dataset.csv")
 df["coords_vals"] = df["coords_vals"].apply(eval)
 
-df = df[df["after_cleanup_len"] <= 10]
+df = df[df["after_cleanup_len"] <= 20]
 files = os.listdir("test_parcel/train")
 files = [eval(file.split(".")[0]) for file in files]
 allowable_train_gtus = list(set(files).intersection(set(df["gtu_ids"])))
@@ -140,8 +140,8 @@ model = Sequential(
         Conv2D(256, 3, 2, padding="same", activation="relu"),
         Conv2D(256, 2, 2, activation="relu"),
         Dropout(0.05),
-        Conv2D(20, 2, 2),
-        Reshape((20,)),
+        Conv2D(40, 2, 2),
+        Reshape((40,)),
     ]
 )
 
