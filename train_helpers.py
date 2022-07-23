@@ -193,11 +193,32 @@ def create_dataset(train_input_names, val_input_names, train_augmentation=None, 
     label_shape = (
         256,
         256,
-        None,
+        3,
     )
     shapes = [image_shape, label_shape]
 
-    train_ds_batched = train_data.get_tf_data(batch_size=12, input_names=train_input_names, shapes=shapes)
-    val_ds_batched = val_data.get_tf_data(batch_size=12, input_names=val_input_names, shapes=shapes)
+    train_ds_batched = train_data.get_tf_data(batch_size=1, input_names=train_input_names, shapes=shapes)
+    val_ds_batched = val_data.get_tf_data(batch_size=1, input_names=val_input_names, shapes=shapes)
 
     return train_ds_batched, val_ds_batched
+
+
+def dice_per_class(y_true, y_pred, eps=1e-5):
+    intersect = tf.reduce_sum(y_true * y_pred)
+    y_sum = tf.reduce_sum(y_true * y_true)
+    z_sum = tf.reduce_sum(y_pred * y_pred)
+    loss = 1 - (2 * intersect + eps) / (z_sum + y_sum + eps)
+    return loss
+
+def gen_dice(y_true, y_pred):
+    pred_tensor = tf.nn.softmax(y_pred)
+    loss = 0.0
+    for c in range(3):
+        loss += dice_per_class(y_true[:, :, :, c], pred_tensor[:, :, :, c])
+    return loss / 3
+
+def segmentation_loss(y_true, y_pred):
+    cce = tf.keras.losses.CategoricalCrossentropy(from_logits=True)
+    cross_entropy_loss = cce(y_true=y_true, y_pred=y_pred)
+    dice_loss = gen_dice(y_true, y_pred)
+    return 0.5 * cross_entropy_loss + 0.5 * dice_loss
