@@ -63,6 +63,11 @@ def flatten(lol):
     lol = np.array([(np.array(i).flatten()) for i in lol]).flatten()
     return lol
 
+def bbox(lol):
+    x = [pt[0] for pt in lol]
+    y = [pt[1] for pt in lol]
+    return np.array([min(x), min(y), max(x), max(y)])
+
 df = pd.read_csv("dataset.csv")
 df["coords_vals"] = df["coords_vals"].apply(eval)
 
@@ -90,19 +95,20 @@ def sort_coords(coords):
 
 
 df["images"] = images
-df = df[df["after_cleanup_len"] <= 7]
+# df = df[df["after_cleanup_len"] <= 7]
 df["sorted_coords"] = df["coords_vals"].apply(sort_coords)
-df["interpolate"] = df["sorted_coords"].apply(interpolate)
-df["interpolate"] = df["interpolate"].apply(sort_coords)
-df["interpolate"] = df["interpolate"].apply(flatten)
+# df["interpolate"] = df["sorted_coords"].apply(interpolate)
+# df["interpolate"] = df["interpolate"].apply(sort_coords)
+# df["interpolate"] = df["interpolate"].apply(flatten)
 # df["coords_vals"]=df["coords_vals"].apply(extend_list)
+df["bbox"] = df["sorted_coords"].apply(bbox)
 
 
 
 X = df["images"].to_list()
 X = [i / 255.0 for i in X]
 X = np.array(X)
-y = np.array(df["interpolate"].to_list())
+y = np.array(df["bbox"].to_list())
 model = Sequential([
     Input(shape=(256, 256, 3)),
     ResNet152V2(include_top=False, input_shape=(256, 256, 3)),
@@ -111,8 +117,8 @@ model = Sequential([
     Conv2D(256, 3, 2, padding='same', activation='relu'),
     Conv2D(256, 2, 2, activation='relu'),
     Dropout(0.05),
-    Conv2D(14, 2, 2),
-    Reshape((14,))
+    Conv2D(4, 2, 2),
+    Reshape((4,))
 ])
 
 optimizer = tf.keras.optimizers.Adam(learning_rate=0.001, decay=0.0007)
