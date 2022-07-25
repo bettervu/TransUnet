@@ -67,7 +67,7 @@ train_ds_batched, val_ds_batched = create_dataset(train_input_names, val_input_n
 
 builder = SM_UNet_Builder(
     encoder_name='efficientnetv2-l',
-    input_shape=(256, 256, 3),
+    input_shape=(512, 512, 3),
     num_classes=3,
     activation="softmax",
     train_encoder=False,

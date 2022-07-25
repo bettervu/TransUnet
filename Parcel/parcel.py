@@ -116,7 +116,7 @@ for i in df.index:
         missing.append(i)
 df.drop(missing, inplace=True)
 df["images"] = images
-# df = df[(df["after_cleanup_len"] <= n_coords)]
+df = df[(df["after_cleanup_len"] <= n_coords)]
 df["sorted_coords"] = df["coords_vals"].apply(sort_coords)
 df["interpolate"] = df["sorted_coords"].apply(interpolate)
 df["interpolate"] = df["interpolate"].apply(sort_coords)
@@ -138,10 +138,10 @@ model = Sequential(
         Conv2D(256, 3, 2, padding="same", activation="relu"),
         Conv2D(256, 2, 2, activation="relu"),
         Dropout(0.05),
-        Conv2D(2, 2, 2),
+        Conv2D(2 * n_coords, 2, 2),
         Permute((3, 2, 1), input_shape=(2, 2, 2 * n_coords)),
         Flatten(),
-        Dense(4, activation="relu"),
+        Dense(2 * n_coords, activation="relu"),
     ]
 )
 
