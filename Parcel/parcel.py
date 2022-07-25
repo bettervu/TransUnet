@@ -120,20 +120,17 @@ X = df["images"].to_list()
 X = np.array(X)
 y = np.array(df["bbox"].to_list())
 
-model = Sequential(
-    [
-        Input(shape=(512, 512, 3)),
-        ResNet152V2(include_top=False, input_shape=(512, 512, 3)),
-        Conv2D(512, 3, padding="same", activation="relu"),
-        Conv2D(512, 3, padding="same", activation="relu"),
-        Conv2D(256, 3, 2, padding="same", activation="relu"),
-        Conv2D(256, 2, 2, activation="relu"),
-        Dropout(0.05),
-        Conv2D(2 * n_coords, 2, 2),
-        Flatten(),
-        Dense((2 * n_coords), activation="relu")
-    ]
-)
+model = Sequential([
+    Input(shape=(512, 512, 3)),
+    ResNet152V2(include_top=False, input_shape=(512, 512, 3)),
+    Conv2D(512, 3, activation='relu'),
+    Conv2D(512, 3, padding='same', activation='relu'),
+    Conv2D(256, 3, 2, padding='same', activation='relu'),
+    Conv2D(256, 2, 2, activation='relu'),
+    Dropout(0.05),
+    Conv2D(2*n_coords, 2, 2),
+    Reshape((2*n_coords,))
+])
 
 optimizer = tf.keras.optimizers.Adam(learning_rate=0.001, decay=0.0007)
 loss = tf.keras.losses.MeanSquaredError()
