@@ -6,16 +6,15 @@ from functools import reduce
 from random import sample
 
 import cv2
-import matplotlib.pyplot as plt
 import gcsfs
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import tensorflow as tf
 from tensorflow.keras import Sequential
 from tensorflow.keras.applications import ResNet152V2
 from tensorflow.keras.callbacks import EarlyStopping
-from tensorflow.keras.layers import (Conv2D, Dense, Dropout, Flatten, Input,
-                                     Permute, Reshape)
+from tensorflow.keras.layers import Conv2D, Dense, Dropout, Flatten, Input, Permute, Reshape
 
 FS = gcsfs.GCSFileSystem()
 try:
@@ -105,7 +104,7 @@ df = pd.read_csv("dataset.csv")
 df["coords_vals"] = df["coords_vals"].apply(eval)
 
 files = os.listdir("test_parcel/train")
-files = [eval(file.split(".")[0]) if not file.endswith(".DS_Store") else 0 for file in files]
+files = [eval(file.split(".")[0]) if not file.endswith('.DS_Store') else 0 for file in files]
 
 allowable_train_gtus = list(set(files).intersection(set(df["gtu_ids"])))
 df = df[df["gtu_ids"].isin(allowable_train_gtus)]
