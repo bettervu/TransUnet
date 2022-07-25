@@ -105,7 +105,14 @@ df["coords_vals"] = df["coords_vals"].apply(eval)
 
 files = os.listdir("test_parcel/train")
 files.remove(".DS_Store")
-files = [eval(file.split(".")[0]) for file in files]
+
+nf = []
+for file in files:
+    f = eval(file.split(".")[0])
+    print(f)
+    nf.append(f)
+
+files = nf
 
 allowable_train_gtus = list(set(files).intersection(set(df["gtu_ids"])))
 df = df[df["gtu_ids"].isin(allowable_train_gtus)]
