@@ -97,6 +97,18 @@ def sort_coords(coords):
 
 df = pd.read_csv("dataset.csv")
 df["coords_vals"] = df["coords_vals"].apply(eval)
+df = df[(df["after_cleanup_len"] <= n_coords)]
+df["sorted_coords"] = df["coords_vals"].apply(sort_coords)
+df["interpolate"] = df["sorted_coords"].apply(interpolate)
+df["interpolate"] = df["interpolate"].apply(flatten)
+df["bbox"] = df["sorted_coords"].apply(bbox)
+
+files = os.listdir("test_parcel/train")
+files.remove(".DS_Store")
+files = [int(file.split(".")[0]) for file in files]
+allowable_train_gtus = list(set(files).intersection(set(df["gtu_ids"])))
+df = df[df["gtu_ids"].isin(allowable_train_gtus)]
+
 images = []
 missing = []
 for i in df.index:
@@ -110,11 +122,6 @@ for i in df.index:
         missing.append(i)
 df.drop(missing, inplace=True)
 df["images"] = images
-df = df[(df["after_cleanup_len"] <= n_coords)]
-df["sorted_coords"] = df["coords_vals"].apply(sort_coords)
-df["interpolate"] = df["sorted_coords"].apply(interpolate)
-df["interpolate"] = df["interpolate"].apply(flatten)
-df["bbox"] = df["sorted_coords"].apply(bbox)
 
 X = df["images"].to_list()
 X = np.array(X)
