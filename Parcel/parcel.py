@@ -30,7 +30,7 @@ def extend_list(lol):
     return lol
 
 
-def interpolate(lol, n=20, t="same"):
+def interpolate(lol, n=7, t="same"):
     if len(lol) == n:
         return lol
     elif len(lol) < n:
@@ -90,7 +90,7 @@ def sort_coords(coords):
 
 
 df["images"] = images
-df = df[df["after_cleanup_len"] <= 20]
+df = df[df["after_cleanup_len"] <= 7]
 df["sorted_coords"] = df["coords_vals"].apply(sort_coords)
 df["interpolate"] = df["sorted_coords"].apply(interpolate)
 df["interpolate"] = df["interpolate"].apply(sort_coords)
@@ -111,8 +111,8 @@ model = Sequential([
     Conv2D(256, 3, 2, padding='same', activation='relu'),
     Conv2D(256, 2, 2, activation='relu'),
     Dropout(0.05),
-    Conv2D(40, 2, 2),
-    Reshape((40,))
+    Conv2D(14, 2, 2),
+    Reshape((14,))
 ])
 
 optimizer = tf.keras.optimizers.Adam(learning_rate=0.001, decay=0.0007)
