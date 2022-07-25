@@ -6,6 +6,7 @@ from functools import reduce
 from random import sample
 
 import cv2
+import matplotlib.pyplot as plt
 import gcsfs
 import numpy as np
 import pandas as pd
@@ -78,8 +79,8 @@ def bbox(lol):
 
 
 def load_image(x):
-    img = cv2.imread(x)
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    byte_img = tf.io.read_file(x)
+    img = tf.io.decode_jpeg(byte_img)
     return img
 
 
@@ -122,10 +123,10 @@ train_images = tf.data.Dataset.from_tensor_slices(
     [f"test_parcel/train/{train_df['gtu_ids'][i]}.png" for i in train_df.index]
 )
 train_images = train_images.map(load_image)
-train_images = train_images.map(lambda x: tf.ensure_shape(x, [256, 256, 3]))
+train_images = train_images.map(lambda x: tf.ensure_shape(x, [512, 512, 3]))
 val_images = tf.data.Dataset.from_tensor_slices([f"test_parcel/train/{val_df['gtu_ids'][i]}.png" for i in val_df.index])
 val_images = val_images.map(load_image)
-val_images = val_images.map(lambda x: tf.ensure_shape(x, [256, 256, 3]))
+val_images = val_images.map(lambda x: tf.ensure_shape(x, [512, 512, 3]))
 
 
 y_train = np.array(train_df["interpolate"].to_list())
