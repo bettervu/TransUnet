@@ -30,7 +30,7 @@ def extend_list(lol):
     return lol
 
 
-def interpolate(lol, n=10, t="linear"):
+def interpolate(lol, n=20, t="linear"):
     if len(lol) == n:
         return lol
     elif len(lol) < n:
@@ -90,7 +90,7 @@ def sort_coords(coords):
 
 
 df["images"] = images
-df = df[df["after_cleanup_len"] <= 10]
+df = df[df["after_cleanup_len"] <= 20]
 df["sorted_coords"] = df["coords_vals"].apply(sort_coords)
 df["interpolate"] = df["sorted_coords"].apply(interpolate)
 df["interpolate"] = df["interpolate"].apply(sort_coords)
@@ -111,8 +111,8 @@ model = Sequential([
     Conv2D(256, 3, 2, padding='same', activation='relu'),
     Conv2D(256, 2, 2, activation='relu'),
     Dropout(0.05),
-    Conv2D(20, 2, 2),
-    Reshape((20,))
+    Conv2D(40, 2, 2),
+    Reshape((40,))
 ])
 
 optimizer = tf.keras.optimizers.Adam(learning_rate=0.001, decay=0.0007)
@@ -123,7 +123,7 @@ early_stopping = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patien
 
 callbacks.append(early_stopping)
 
-H = model.fit(np.asarray(X[:-50]), np.asarray(y[:-50]), validation_data=(X[50:], y[50:]), batch_size=16, epochs=10, verbose=1, callbacks=callbacks)
+H = model.fit(np.asarray(X[:-50]), np.asarray(y[:-50]), validation_data=(X[50:], y[50:]), batch_size=16, epochs=15, verbose=1, callbacks=callbacks)
 
 loss = H.history["loss"]
 val_loss = H.history["val_loss"]
