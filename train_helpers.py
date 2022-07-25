@@ -189,10 +189,10 @@ def create_dataset(train_input_names, val_input_names, train_augmentation=None, 
         use_distance_weights=False,
     )
 
-    image_shape = (256, 256, 3)
+    image_shape = (512, 512, 3)
     label_shape = (
-        256,
-        256,
+        512,
+        512,
         3,
     )
     shapes = [image_shape, label_shape]
