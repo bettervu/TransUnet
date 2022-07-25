@@ -4,7 +4,7 @@ import os
 import tarfile
 from functools import reduce
 from random import sample
-import cv2
+
 import gcsfs
 import numpy as np
 import pandas as pd
@@ -13,24 +13,17 @@ from tensorflow.keras import Sequential
 from tensorflow.keras.applications import ResNet152V2
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.layers import Conv2D, Dropout, Input, Reshape
+
 FS = gcsfs.GCSFileSystem()
+
 try:
     gpus = tf.config.list_physical_devices("GPU")
-    tf.config.set_visible_devices(gpus[2], "GPU")
+    tf.config.set_visible_devices(gpus[1], "GPU")
 except:
     print("Gpus not found")
 
 
-def extend_list(lol):
-    if len(lol) >= 10:
-        lol = sample(lol, 10)
-    else:
-        lol.extend((10 - len(lol)) * [[0, 0]])
-    lol = np.array([(np.array(i).flatten()) for i in lol]).flatten()
-    return lol
-
-
-def interpolate(lol, n=10, t="same"):
+def interpolate(lol, n=20, t="linear"):
     if len(lol) == n:
         return lol
     elif len(lol) < n:
@@ -59,72 +52,108 @@ def interpolate(lol, n=10, t="same"):
         lol = np.array([np.array([final_x[pt], final_y[pt]]) for pt in range(len(final_x))])
     return lol
 
+
 def flatten(lol):
     lol = np.array([(np.array(i).flatten()) for i in lol]).flatten()
     return lol
 
-df = pd.read_csv("dataset.csv")
-df["coords_vals"] = df["coords_vals"].apply(eval)
 
-images = []
-for i in range(4473):
-    img = cv2.imread(f"test_parcel/train/{i}.png")
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    images.append(img)
 def distance(l1, l2=[0, 0]):
     d = ((l1[0] - l2[0]) ** 2 + (l1[1] - l2[1]) ** 2) ** 0.5
     return d
+
+
 def sort_coords(coords):
-    center = tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), coords), [len(coords)] * 2))
-    coords = (sorted(coords, key=lambda coord: (-135 - math.degrees(math.atan2(*tuple(map(operator.sub, coord, center))[::-1]))) % 360))
     dst = list(map(distance, coords))
     origin = dst.index(min(dst))
     final_coords = coords[origin:] + coords[:origin]
     return final_coords
 
 
-df["images"] = images
-df = df[df["after_cleanup_len"] <= 10]
+def load_image(x):
+    byte_img = tf.io.read_file(x)
+    img = tf.io.decode_jpeg(byte_img)
+    return img
+
+
+df = pd.read_csv("dataset.csv")
+df["coords_vals"] = df["coords_vals"].apply(eval)
+
+df = df[df["after_cleanup_len"] <= 20]
+files = os.listdir("test_parcel/train")
+files = [eval(file.split(".")[0]) for file in files]
+allowable_train_gtus = list(set(files).intersection(set(df["gtu_ids"])))
+df = df[df['gtu_ids'].isin(allowable_train_gtus)]
 df["sorted_coords"] = df["coords_vals"].apply(sort_coords)
-df["interpolate"] = df["sorted_coords"].apply(interpolate)
-df["interpolate"] = df["interpolate"].apply(sort_coords)
-df["interpolate"] = df["interpolate"].apply(flatten)
-# df["coords_vals"]=df["coords_vals"].apply(extend_list)
+df["interpolate_same"] = df["sorted_coords"].apply(interpolate)
+df["interpolate_linear"] = df["sorted_coords"].apply(lambda x: interpolate(x, t="linear"))
+df["interpolate_same"] = df["interpolate_same"].apply(flatten)
+df["interpolate_linear"] = df["interpolate_linear"].apply(flatten)
 
+train_df = df.sample(frac=0.8)
+val_df = df.drop(train_df.index)
 
+train_images = tf.data.Dataset.from_tensor_slices([f"test_parcel/train/{train_df['gtu_ids'][i]}.png" for i in train_df.index])
+train_images = train_images.map(load_image)
+train_images = train_images.map(lambda x: tf.ensure_shape(x, [256, 256, 3]))
 
-X = df["images"].to_list()
-X = [i / 255.0 for i in X]
-X = np.array(X)
-y = np.array(df["interpolate"].to_list())
-model = Sequential([
-    Input(shape=(256, 256, 3)),
-    ResNet152V2(include_top=False, input_shape=(256, 256, 3)),
-    Conv2D(512, 3, padding='same', activation='relu'),
-    Conv2D(512, 3, padding='same', activation='relu'),
-    Conv2D(256, 3, 2, padding='same', activation='relu'),
-    Conv2D(256, 2, 2, activation='relu'),
-    Dropout(0.05),
-    Conv2D(20, 2, 2),
-    Reshape((20,))
-])
+val_images = tf.data.Dataset.from_tensor_slices([f"test_parcel/train/{val_df['gtu_ids'][i]}.png" for i in val_df.index])
+val_images = val_images.map(load_image)
+val_images = val_images.map(lambda x: tf.ensure_shape(x, [256, 256, 3]))
+
+y_train = np.array(train_df["interpolate_same"].to_list())
+y_val = np.array(val_df["interpolate_same"].to_list())
+
+train_labels = tf.data.Dataset.from_tensor_slices(y_train)
+val_labels = tf.data.Dataset.from_tensor_slices(y_val)
+
+train = tf.data.Dataset.zip((train_images, train_labels))
+train = train.shuffle(5000)
+train = train.batch(16)
+train = train.prefetch(4)
+
+val = tf.data.Dataset.zip((val_images, val_labels))
+val = val.shuffle(1000)
+val = val.batch(16)
+val = val.prefetch(4)
+
+model = Sequential(
+    [
+        Input(shape=(256, 256, 3)),
+        ResNet152V2(include_top=False, input_shape=(256, 256, 3)),
+        Conv2D(512, 3, padding="same", activation="relu"),
+        Conv2D(512, 3, padding="same", activation="relu"),
+        Conv2D(256, 3, 2, padding="same", activation="relu"),
+        Conv2D(256, 2, 2, activation="relu"),
+        Dropout(0.05),
+        Conv2D(40, 2, 2),
+        Reshape((40,)),
+    ]
+)
 
 optimizer = tf.keras.optimizers.Adam(learning_rate=0.001, decay=0.0007)
 loss = tf.keras.losses.MeanAbsoluteError()
+
 model.compile(optimizer, loss)
+
 callbacks = []
-early_stopping = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=20)
+early_stopping = EarlyStopping(monitor="val_loss", mode="min", verbose=1, patience=20)
 
 callbacks.append(early_stopping)
 
-H = model.fit(np.asarray(X[:-50]), np.asarray(y[:-50]), validation_data=(X[50:], y[50:]), batch_size=16, epochs=20, verbose=1, callbacks=callbacks)
+H = model.fit(train, validation_data=val, epochs=15, verbose=1, callbacks=callbacks)
+
 
 loss = H.history["loss"]
 val_loss = H.history["val_loss"]
+
 df = pd.DataFrame(loss)
 df["loss"] = loss
 df["val_loss"] = val_loss
+
 df.to_csv("parcelUnet.csv")
+
 model.save("my_model")
+
 with tarfile.open("my_model.tar.gz", "w:gz") as tar:
     tar.add("my_model", arcname=os.path.basename("my_model"))
