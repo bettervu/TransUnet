@@ -33,10 +33,10 @@ def extend_list(lol):
     return lol
 
 
-n_coords = 2
+n_coords = 4
 
 
-def interpolate(lol, n=n_coords, t="same"):
+def interpolate(lol, n=n_coords, t="linear"):
     if len(lol) == n:
         return lol
     elif len(lol) < n:
@@ -89,16 +89,10 @@ def distance(l1, l2=[0, 0]):
 
 
 def sort_coords(coords):
-    center = tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), coords), [len(coords)] * 2))
-    coords = sorted(
-        coords,
-        key=lambda coord: (-135 - math.degrees(math.atan2(*tuple(map(operator.sub, coord, center))[::-1]))) % 360,
-    )
     dst = list(map(distance, coords))
     origin = dst.index(min(dst))
     final_coords = coords[origin:] + coords[:origin]
     return final_coords
-
 
 
 df = pd.read_csv("dataset.csv")
@@ -116,18 +110,15 @@ for i in df.index:
         missing.append(i)
 df.drop(missing, inplace=True)
 df["images"] = images
-# df = df[(df["after_cleanup_len"] <= n_coords)]
+df = df[(df["after_cleanup_len"] <= n_coords)]
 df["sorted_coords"] = df["coords_vals"].apply(sort_coords)
 df["interpolate"] = df["sorted_coords"].apply(interpolate)
-df["interpolate"] = df["interpolate"].apply(sort_coords)
 df["interpolate"] = df["interpolate"].apply(flatten)
 df["bbox"] = df["sorted_coords"].apply(bbox)
 
 X = df["images"].to_list()
-# X = [i / 255.0 for i in X]
 X = np.array(X)
 y = np.array(df["bbox"].to_list())
-
 
 model = Sequential(
     [
@@ -152,7 +143,15 @@ early_stopping = EarlyStopping(monitor="val_loss", mode="min", verbose=1, patien
 
 callbacks.append(early_stopping)
 
-H = model.fit(np.asarray(X[:1000]), np.asarray(y[:1000]), validation_data=(X[-200:], y[-200:]), batch_size=4, epochs=100, verbose=1, callbacks=callbacks)
+H = model.fit(
+    np.asarray(X[:1000]),
+    np.asarray(y[:1000]),
+    validation_data=(X[-200:], y[-200:]),
+    batch_size=4,
+    epochs=100,
+    verbose=1,
+    callbacks=callbacks,
+)
 
 loss = H.history["loss"]
 val_loss = H.history["val_loss"]
@@ -161,5 +160,6 @@ df["loss"] = loss
 df["val_loss"] = val_loss
 df.to_csv("parcelUnet.csv")
 model.save("my_model")
+
 with tarfile.open("my_model.tar.gz", "w:gz") as tar:
     tar.add("my_model", arcname=os.path.basename("my_model"))
