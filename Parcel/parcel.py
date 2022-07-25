@@ -145,12 +145,12 @@ val_labels = tf.data.Dataset.from_tensor_slices(y_val)
 
 train = tf.data.Dataset.zip((train_images, train_labels))
 train = train.shuffle(5000)
-train = train.batch(16)
+train = train.batch(12)
 train = train.prefetch(4)
 
 val = tf.data.Dataset.zip((val_images, val_labels))
 val = val.shuffle(1000)
-val = val.batch(16)
+val = val.batch(12)
 val = val.prefetch(4)
 
 
@@ -179,7 +179,7 @@ early_stopping = EarlyStopping(monitor="val_loss", mode="min", verbose=1, patien
 
 callbacks.append(early_stopping)
 
-H = model.fit(train, validation_data=val, batch_size=12, epochs=100, verbose=1, callbacks=callbacks)
+H = model.fit(train, validation_data=val, epochs=100, verbose=1, callbacks=callbacks)
 
 loss = H.history["loss"]
 val_loss = H.history["val_loss"]
