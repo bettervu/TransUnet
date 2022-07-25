@@ -79,7 +79,7 @@ def bbox(lol):
 
 def load_image(x):
     byte_img = tf.io.read_file(x)
-    img = tf.io.decode_jpeg(byte_img)
+    img = tf.io.decode_png(byte_img)
     return img
 
 
@@ -124,14 +124,14 @@ model = Sequential(
     [
         Input(shape=(512, 512, 3)),
         ResNet152V2(include_top=False, input_shape=(512, 512, 3)),
-        Conv2D(1024, 3, padding="same", activation="relu"),
+        Conv2D(512, 3, padding="same", activation="relu"),
         Conv2D(512, 3, padding="same", activation="relu"),
         Conv2D(256, 3, 2, padding="same", activation="relu"),
         Conv2D(256, 2, 2, activation="relu"),
         Dropout(0.05),
         Conv2D(2 * n_coords, 2, 2),
-        Flatten(),
-        Dense(2 * n_coords, activation="relu"),
+        # Flatten(),
+        Reshape(((2 * n_coords),))
     ]
 )
 
