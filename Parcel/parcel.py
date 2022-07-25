@@ -131,8 +131,8 @@ X = np.array(X)
 y = np.array(df["interpolate"].to_list())
 
 model = Sequential([
-    Input(shape=(512, 512, 3)),
-    ResNet152V2(include_top=False, input_shape=(512, 512, 3)),
+    Input(shape=(256, 256, 3)),
+    ResNet152V2(include_top=False, input_shape=(256, 256, 3)),
     Conv2D(512, 3, activation='relu'),
     Conv2D(512, 3, padding='same', activation='relu'),
     Conv2D(256, 3, 2, padding='same', activation='relu'),
