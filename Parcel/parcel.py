@@ -85,9 +85,12 @@ files = [eval(file.split(".")[0]) for file in files]
 allowable_train_gtus = list(set(files).intersection(set(df["gtu_ids"])))
 df = df[df['gtu_ids'].isin(allowable_train_gtus)]
 df["sorted_coords"] = df["coords_vals"].apply(sort_coords)
-df["interpolate"] = df["sorted_coords"].apply(interpolate)
-df["interpolate"] = df["interpolate"].apply(sort_coords)
-df["interpolate"] = df["interpolate"].apply(flatten)
+df["interpolate_same"] = df["sorted_coords"].apply(interpolate)
+# df["interpolate_same"] = df["interpolate_same"].apply(lambda x:[list(i) for i in x])
+df["interpolate_linear"] = df["sorted_coords"].apply(lambda x: interpolate(x, t="linear"))
+# df["interpolate_linear"] = df["interpolate_linear"].apply(lambda x:[list(i) for i in x])
+df["interpolate_same"] = df["interpolate_same"].apply(flatten)
+df["interpolate_linear"] = df["interpolate_linear"].apply(flatten)
 
 train_df = df.sample(frac=0.8)
 val_df = df.drop(train_df.index)
@@ -100,8 +103,8 @@ val_images = tf.data.Dataset.from_tensor_slices([f"test_parcel/train/{val_df['gt
 val_images = val_images.map(load_image)
 val_images = val_images.map(lambda x: tf.ensure_shape(x, [256, 256, 3]))
 
-y_train = np.array(train_df["interpolate"].to_list())
-y_val = np.array(val_df["interpolate"].to_list())
+y_train = np.array(train_df["interpolate_same"].to_list())
+y_val = np.array(val_df["interpolate_same"].to_list())
 
 train_labels = tf.data.Dataset.from_tensor_slices(y_train)
 val_labels = tf.data.Dataset.from_tensor_slices(y_val)
@@ -140,7 +143,7 @@ early_stopping = EarlyStopping(monitor="val_loss", mode="min", verbose=1, patien
 
 callbacks.append(early_stopping)
 
-H = model.fit(train, validation_data=val, epochs=40, verbose=1, callbacks=callbacks)
+H = model.fit(train, validation_data=val, epochs=10, verbose=1, callbacks=callbacks)
 
 
 loss = H.history["loss"]
