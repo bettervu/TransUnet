@@ -104,7 +104,7 @@ df = pd.read_csv("dataset.csv")
 df["coords_vals"] = df["coords_vals"].apply(eval)
 
 files = os.listdir("test_parcel/train")
-files = [int(file.split(".")[0]) if not file.endswith(".DS_Store") else 0 for file in files]
+files = [eval(file.split(".")[0]) if not file.endswith(".DS_Store") else 0 for file in files]
 
 allowable_train_gtus = list(set(files).intersection(set(df["gtu_ids"])))
 df = df[df["gtu_ids"].isin(allowable_train_gtus)]
