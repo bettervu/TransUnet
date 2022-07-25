@@ -4,7 +4,7 @@ import os
 import tarfile
 from functools import reduce
 from random import sample
-import cv2
+import matplotlib.pyplot as plt
 import gcsfs
 import numpy as np
 import pandas as pd
@@ -67,10 +67,14 @@ df = pd.read_csv("dataset.csv")
 df["coords_vals"] = df["coords_vals"].apply(eval)
 
 images = []
-for i in range(4473):
-    img = cv2.imread(f"test_parcel/train/{i}.png")
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    images.append(img)
+missing = []
+for i in df.index:
+    try:
+        img = plt.imread(f"test_parcel/train/{df['gtu_ids'][i]}.png")
+        images.append(img)
+    except:
+        missing.append(i)
+df.drop([missing], inplace=True)
 def distance(l1, l2=[0, 0]):
     d = ((l1[0] - l2[0]) ** 2 + (l1[1] - l2[1]) ** 2) ** 0.5
     return d
