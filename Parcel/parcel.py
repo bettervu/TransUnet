@@ -12,7 +12,7 @@ import tensorflow as tf
 from tensorflow.keras import Sequential
 from tensorflow.keras.applications import ResNet152V2
 from tensorflow.keras.callbacks import EarlyStopping
-from tensorflow.keras.layers import Conv2D, Dropout, Input, Reshape
+from tensorflow.keras.layers import Conv2D, Dropout, Input, Reshape, Permute, Flatten, Dense
 FS = gcsfs.GCSFileSystem()
 try:
     gpus = tf.config.list_physical_devices("GPU")
@@ -110,16 +110,18 @@ X = df["images"].to_list()
 X = np.array(X)
 y = np.array(df["interpolate"].to_list())
 model = Sequential([
-    Input(shape=(256, 256, 3)),
-    ResNet152V2(include_top=False, input_shape=(256, 256, 3)),
-    Conv2D(512, 3, padding='same', activation='relu'),
+    Input(shape=(512,512,3)),
+    ResNet152V2(include_top=False, input_shape=(512,512,3)),
+    Conv2D(1024, 3, padding='same', activation='relu'),
     Conv2D(512, 3, padding='same', activation='relu'),
     Conv2D(256, 3, 2, padding='same', activation='relu'),
     Conv2D(256, 2, 2, activation='relu'),
     Dropout(0.05),
     Conv2D(2*n_coords, 2, 2),
-    Reshape((2*n_coords,))
-])
+    Permute((3,2,1), input_shape=(2, 2, 2*n_coords)),
+    Flatten(),
+    Dense(4*n_coords, activation="relu"),
+    Dense(2*n_coords, activation="relu"),])
 
 optimizer = tf.keras.optimizers.Adam(learning_rate=0.001, decay=0.0007)
 loss = tf.keras.losses.MeanSquaredError()
