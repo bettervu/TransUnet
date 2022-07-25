@@ -1,6 +1,5 @@
-import cv2
-import numpy as np
 import os
+import tarfile
 import argparse
 import pandas as pd
 import tensorflow as tf
@@ -104,7 +103,7 @@ metric = WeightedMeanIoU(
         )
 
 model = builder.build_model()
-model.compile(optimizer='adam', loss=segmentation_loss, metrics=metric)
+model.compile(optimizer='adam', loss=loss, metrics=metric)
 
 step_size = int(2.0 * len(train_input_names) / args_dict["batch_size"])
 callbacks = []
@@ -137,7 +136,7 @@ cp_callback = tf.keras.callbacks.ModelCheckpoint(
 callbacks.append(cp_callback)
 
 history = model.fit(
-    train_ds_batched, epochs=10, validation_data=val_ds_batched, callbacks=[callbacks]
+    train_ds_batched, epochs=20, validation_data=val_ds_batched, callbacks=[callbacks]
 )
 
 iou = history.history["wt_mean_iou"]
@@ -150,4 +149,6 @@ df["loss"] = loss
 df["val_loss"] = val_loss
 
 df.to_csv("parcelUnet.csv")
-model.save("my_model")
+model.save("my_model_Unet")
+with tarfile.open("my_model_Unet.tar.gz", "w:gz") as tar:
+    tar.add("my_model_Unet", arcname=os.path.basename("my_model_Unet"))
