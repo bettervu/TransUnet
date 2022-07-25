@@ -23,7 +23,7 @@ except:
     print("Gpus not found")
 
 
-def interpolate(lol, n=20, t="same"):
+def interpolate(lol, n=20, t="linear"):
     if len(lol) == n:
         return lol
     elif len(lol) < n:
@@ -143,7 +143,7 @@ early_stopping = EarlyStopping(monitor="val_loss", mode="min", verbose=1, patien
 
 callbacks.append(early_stopping)
 
-H = model.fit(train, validation_data=val, epochs=10, verbose=1, callbacks=callbacks)
+H = model.fit(train, validation_data=val, epochs=5, verbose=1, callbacks=callbacks)
 
 
 loss = H.history["loss"]
