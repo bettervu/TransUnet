@@ -19,7 +19,7 @@ from tensorflow.keras.layers import Conv2D, Dense, Dropout, Flatten, Input, Perm
 FS = gcsfs.GCSFileSystem()
 try:
     gpus = tf.config.list_physical_devices("GPU")
-    tf.config.set_visible_devices(gpus[1], "GPU")
+    tf.config.set_visible_devices(gpus[2], "GPU")
 except:
     print("Gpus not found")
 
