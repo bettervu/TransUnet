@@ -23,20 +23,10 @@ except:
     print("Gpus not found")
 
 
-def extend_list(lol):
-    if len(lol) >= 10:
-        lol = sample(lol, 10)
-    else:
-        lol.extend((10 - len(lol)) * [[0, 0]])
-    lol = np.array([(np.array(i).flatten()) for i in lol]).flatten()
-    return lol
-
-
-def interpolate(lol, n=20, type="linear"):
-
-    if len(lol) >= n:
-        lol = sample(lol, n)
-    else:
+def interpolate(lol, n=20, t="same"):
+    if len(lol) == n:
+        return lol
+    elif len(lol) < n:
         final_x = []
         final_y = []
         x = [point[0] for point in lol]
@@ -51,7 +41,7 @@ def interpolate(lol, n=20, type="linear"):
                 steps = np.linspace(0, 1, n_to_inter_most + n_to_inter_last + 1)
             else:
                 steps = np.linspace(0, 1, n_to_inter_most + 1)
-            if type == "same":
+            if t == "same":
                 current_x_to_interpolate = [x1] * len(steps)
                 current_y_to_interpolate = [y1] * len(steps)
             else:
@@ -74,11 +64,6 @@ def distance(l1, l2=[0, 0]):
 
 
 def sort_coords(coords):
-    center = tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), coords), [len(coords)] * 2))
-    coords = sorted(
-        coords,
-        key=lambda coord: (-135 - math.degrees(math.atan2(*tuple(map(operator.sub, coord, center))[::-1]))) % 360,
-    )
     dst = list(map(distance, coords))
     origin = dst.index(min(dst))
     final_coords = coords[origin:] + coords[:origin]
