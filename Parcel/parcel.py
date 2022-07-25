@@ -130,8 +130,8 @@ model = Sequential(
         Conv2D(256, 2, 2, activation="relu"),
         Dropout(0.05),
         Conv2D(2 * n_coords, 2, 2),
-        # Flatten(),
-        Reshape(((2 * n_coords),))
+        Flatten(),
+        Dense((2 * n_coords), activation="relu")
     ]
 )
 
