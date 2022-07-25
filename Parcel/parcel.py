@@ -97,7 +97,7 @@ def sort_coords(coords):
 
 
 df["images"] = images
-df = df[df["after_cleanup_len"] <= 15]
+df = df[(df["after_cleanup_len"] <= 15) & (df["after_cleanup_len"] >= 10)]
 df["sorted_coords"] = df["coords_vals"].apply(sort_coords)
 df["interpolate"] = df["sorted_coords"].apply(interpolate)
 df["interpolate"] = df["interpolate"].apply(sort_coords)
