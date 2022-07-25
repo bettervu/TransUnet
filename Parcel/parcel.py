@@ -122,7 +122,7 @@ model = Sequential([
 ])
 
 optimizer = tf.keras.optimizers.Adam(learning_rate=0.001, decay=0.0007)
-loss = tf.keras.losses.MeanAbsoluteError()
+loss = tf.keras.losses.MeanSquaredError()
 model.compile(optimizer, loss)
 callbacks = []
 early_stopping = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patience=20)
