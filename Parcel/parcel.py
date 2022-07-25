@@ -104,7 +104,7 @@ df = pd.read_csv("dataset.csv")
 df["coords_vals"] = df["coords_vals"].apply(eval)
 
 files = os.listdir("test_parcel/train")
-files = [eval(file.split(".")[0]) if not file.endswith('.DS_Store') else 0 for file in files]
+files = [file.split(".")[0] for file in files]
 
 allowable_train_gtus = list(set(files).intersection(set(df["gtu_ids"])))
 df = df[df["gtu_ids"].isin(allowable_train_gtus)]
@@ -119,7 +119,7 @@ df["bbox"] = df["sorted_coords"].apply(bbox)
 train_df = df.sample(frac=0.8)
 val_df = df.drop(train_df.index)
 train_images = tf.data.Dataset.from_tensor_slices(
-    [f"test_parcel/train/{train_df['gtu_ids'][i]}.png" for i in train_df.index]
+    [f"test_parcel/train/" + train_df["gtu_ids"][i] + ".png" for i in train_df.index]
 )
 train_images = train_images.map(load_image)
 train_images = train_images.map(lambda x: tf.ensure_shape(x, [512, 512, 3]))
