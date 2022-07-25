@@ -118,7 +118,7 @@ df["bbox"] = df["sorted_coords"].apply(bbox)
 
 X = df["images"].to_list()
 X = np.array(X)
-y = np.array(df["bbox"].to_list())
+y = np.array(df["interpolate"].to_list())
 
 model = Sequential([
     Input(shape=(512, 512, 3)),
