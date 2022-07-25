@@ -4,7 +4,6 @@ import os
 import tarfile
 from functools import reduce
 from random import sample
-import matplotlib.pyplot as plt
 import cv2
 import gcsfs
 import numpy as np
@@ -30,7 +29,7 @@ def extend_list(lol):
     lol = np.array([(np.array(i).flatten()) for i in lol]).flatten()
     return lol
 
-n_coords = 10
+n_coords = 7
 
 def interpolate(lol, n=n_coords, t="same"):
     if len(lol) == n:
