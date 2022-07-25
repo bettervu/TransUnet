@@ -139,7 +139,6 @@ model = Sequential(
         Conv2D(256, 2, 2, activation="relu"),
         Dropout(0.05),
         Conv2D(2 * n_coords, 2, 2),
-        Permute((3, 2, 1), input_shape=(2, 2, 2 * n_coords)),
         Flatten(),
         Dense(2 * n_coords, activation="relu"),
     ]
@@ -153,7 +152,7 @@ early_stopping = EarlyStopping(monitor="val_loss", mode="min", verbose=1, patien
 
 callbacks.append(early_stopping)
 
-H = model.fit(np.asarray(X[:1000]), np.asarray(y[:1000]), validation_data=(X[-200:], y[-200:]), batch_size=1, epochs=100, verbose=1, callbacks=callbacks)
+H = model.fit(np.asarray(X[:1000]), np.asarray(y[:1000]), validation_data=(X[-200:], y[-200:]), batch_size=4, epochs=100, verbose=1, callbacks=callbacks)
 
 loss = H.history["loss"]
 val_loss = H.history["val_loss"]
