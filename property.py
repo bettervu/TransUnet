@@ -35,10 +35,8 @@ args, _ = parser.parse_known_args()
 args_dict = vars(args)
 args_dict["checkpoint_filepath"] = args_dict["save_path"] + "/checkpoint/"
 
-if args_dict["machine"] == "local":
-    dataset_directory = os.environ.get("BP_PATH_REMOTE") + "/datasets/semseg_base" + "/" + args_dict["dataset"]
-else:
-    dataset_directory = "/home/bv/" + "datasets/semseg_base" + "/" + args_dict["dataset"]
+dataset_directory = os.environ.get("BP_PATH_REMOTE") + "/datasets/semseg_base" + "/" + args_dict["dataset"]
+
 
 try:
     gpus = tf.config.list_physical_devices("GPU")
@@ -46,22 +44,26 @@ try:
 except:
     print("Gpus not found")
 
-train_input_names = [
-    dataset_directory + "/train/" + i
-    for i in os.listdir(dataset_directory + "/train/")
-    if i.endswith(".png")
-]
-train_label_names = [
-    dataset_directory + "/train_labels/" + i
-    for i in os.listdir(dataset_directory + "/train/")
-    if i.endswith(".png")
-]
-val_input_names = [
-    dataset_directory + "/val/" + i for i in os.listdir(dataset_directory + "/val/") if i.endswith(".png")
-]
-val_label_names = [
-    dataset_directory + "/val_labels/" + i for i in os.listdir(dataset_directory + "/val/") if i.endswith(".png")
-]
+train_input_names = []
+for i in os.listdir(dataset_directory + "/train/"):
+    if i.endswith(".png"):
+        train_input_names.append(dataset_directory + "/train/" + i)
+
+train_label_names = []
+for i in os.listdir(dataset_directory + "/train/"):
+    if i.endswith(".png"):
+        train_label_names.append(dataset_directory + "/train_labels/" + i)
+
+val_input_names = []
+for i in os.listdir(dataset_directory + "/val/"):
+    if i.endswith(".png"):
+        val_input_names.append(dataset_directory + "/val/" + i)
+
+val_label_names = []
+for i in os.listdir(dataset_directory + "/val/"):
+    if i.endswith(".png"):
+        val_label_names.append(dataset_directory + "/val_labels/" + i)
+
 
 train_ds_batched, val_ds_batched = create_dataset(train_input_names, val_input_names, train_augmentation=args_dict["train_augmentation_file"])
 
