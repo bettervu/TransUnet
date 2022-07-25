@@ -108,8 +108,8 @@ files.remove(".DS_Store")
 
 nf = []
 for file in files:
+    print(file)
     f = eval(file.split(".")[0])
-    print(f)
     nf.append(f)
 
 files = nf
