@@ -18,6 +18,7 @@ FS = gcsfs.GCSFileSystem()
 env = Environment()
 
 parser = argparse.ArgumentParser(description="Property")
+parser.add_argument("dataset")
 parser.add_argument("log", type=str)
 parser.add_argument("gpu", type=int)
 parser.add_argument("--machine", type=str, default="local")
@@ -32,7 +33,6 @@ parser.add_argument("--save_path", type=str, default="property")
 
 args, _ = parser.parse_known_args()
 args_dict = vars(args)
-args_dict["dataset"] = "MACH-202-2_debug"
 args_dict["checkpoint_filepath"] = args_dict["save_path"] + "/checkpoint/"
 
 if args_dict["machine"] == "local":
