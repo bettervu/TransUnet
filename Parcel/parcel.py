@@ -30,7 +30,7 @@ def extend_list(lol):
     return lol
 
 
-def interpolate(lol, n=10, t="same"):
+def interpolate(lol, n=10, t="linear"):
     if len(lol) == n:
         return lol
     elif len(lol) < n:
