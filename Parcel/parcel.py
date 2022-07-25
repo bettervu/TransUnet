@@ -5,6 +5,7 @@ import tarfile
 from functools import reduce
 from random import sample
 import matplotlib.pyplot as plt
+import cv2
 import gcsfs
 import numpy as np
 import pandas as pd
@@ -75,7 +76,8 @@ images = []
 missing = []
 for i in df.index:
     try:
-        img = plt.imread(f"test_parcel/train/{df['gtu_ids'][i]}.png")
+        img = cv2.imread(f"test_parcel/train/{df['gtu_ids'][i]}.png")
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         images.append(img)
         if img.shape[2] == 4:
             missing.append(i)
@@ -106,7 +108,7 @@ df["bbox"] = df["sorted_coords"].apply(bbox)
 
 
 X = df["images"].to_list()
-X = [i / 255.0 for i in X]
+# X = [i / 255.0 for i in X]
 X = np.array(X)
 y = np.array(df["bbox"].to_list())
 model = Sequential([
