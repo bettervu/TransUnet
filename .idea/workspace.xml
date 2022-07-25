@@ -2,12 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="fa92aea5-70c4-433b-81a6-b55b9fe17fd2" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/TransUnet.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/TransUnet.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Parcel/parcel.py" beforeDir="false" afterPath="$PROJECT_DIR$/Parcel/parcel.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/parcelUnet.csv" beforeDir="false" afterPath="$PROJECT_DIR$/parcelUnet.csv" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/train_helpers.py" beforeDir="false" afterPath="$PROJECT_DIR$/train_helpers.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Untitled2.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/Untitled2.ipynb" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -266,6 +262,11 @@
           <url>file://$PROJECT_DIR$/property.py</url>
           <line>66</line>
           <option name="timeStamp" value="15" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/Parcel/parcel.py</url>
+          <line>78</line>
+          <option name="timeStamp" value="50" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
