@@ -72,9 +72,11 @@ for i in df.index:
     try:
         img = plt.imread(f"test_parcel/train/{df['gtu_ids'][i]}.png")
         images.append(img)
+        if img.shape[2] == 4:
+            missing.append(i)
     except:
         missing.append(i)
-df.drop([missing], inplace=True)
+df.drop(missing, inplace=True)
 def distance(l1, l2=[0, 0]):
     d = ((l1[0] - l2[0]) ** 2 + (l1[1] - l2[1]) ** 2) ** 0.5
     return d
