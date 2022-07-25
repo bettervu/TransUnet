@@ -116,7 +116,7 @@ for i in df.index:
         missing.append(i)
 df.drop(missing, inplace=True)
 df["images"] = images
-df = df[(df["after_cleanup_len"] <= n_coords)]
+# df = df[(df["after_cleanup_len"] <= n_coords)]
 df["sorted_coords"] = df["coords_vals"].apply(sort_coords)
 df["interpolate"] = df["sorted_coords"].apply(interpolate)
 df["interpolate"] = df["interpolate"].apply(sort_coords)
