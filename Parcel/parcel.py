@@ -31,7 +31,7 @@ def extend_list(lol):
     return lol
 
 
-def interpolate(lol, n=30, t="linear"):
+def interpolate(lol, n=30, t="same"):
     if len(lol) == n:
         return lol
     elif len(lol) < n:
@@ -131,7 +131,7 @@ early_stopping = EarlyStopping(monitor='val_loss', mode='min', verbose=1, patien
 
 callbacks.append(early_stopping)
 
-H = model.fit(np.asarray(X[:-50]), np.asarray(y[:-50]), validation_data=(X[50:], y[50:]), batch_size=16, epochs=100, verbose=1, callbacks=callbacks)
+H = model.fit(np.asarray(X[:-50]), np.asarray(y[:-50]), validation_data=(X[50:], y[50:]), batch_size=16, epochs=50, verbose=1, callbacks=callbacks)
 
 loss = H.history["loss"]
 val_loss = H.history["val_loss"]
