@@ -58,8 +58,8 @@ def interpolate(lol, n=n_coords, t="same"):
                 current_x_to_interpolate = [x1] * len(steps)
                 current_y_to_interpolate = [y1] * len(steps)
             else:
-                current_x_to_interpolate = [(x1 + (x2 - x1) * (step)) for step in steps]
-                current_y_to_interpolate = [(y1 + (y2 - y1) * (step)) for step in steps]
+                current_x_to_interpolate = [(abs(x1 + (x2 - x1)) * (step)) for step in steps]
+                current_y_to_interpolate = [(abs(y1 + (y2 - y1)) * (step)) for step in steps]
             final_x.extend(current_x_to_interpolate[:-1])
             final_y.extend(current_y_to_interpolate[:-1])
         lol = np.array([np.array([final_x[pt], final_y[pt]]) for pt in range(len(final_x))])
@@ -108,9 +108,9 @@ files.remove(".DS_Store")
 
 nf = []
 for file in files:
-    print(file)
-    f = eval(file.split(".")[0])
-    nf.append(f)
+    if not file.startswith("."):
+        f = eval(file.split(".")[0])
+        nf.append(f)
 
 files = nf
 
@@ -123,6 +123,7 @@ df["interpolate"] = df["sorted_coords"].apply(interpolate)
 df["interpolate"] = df["interpolate"].apply(sort_coords)
 df["interpolate"] = df["interpolate"].apply(flatten)
 df["bbox"] = df["sorted_coords"].apply(bbox)
+df["inter+bbox"] = df.apply(lambda x: np.append(x['interpolate'], x['bbox']), axis=1)
 
 train_df = df.sample(frac=0.8)
 val_df = df.drop(train_df.index)
