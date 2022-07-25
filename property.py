@@ -32,7 +32,7 @@ parser.add_argument("--save_path", type=str, default="property")
 
 args, _ = parser.parse_known_args()
 args_dict = vars(args)
-args_dict["dataset"] = "/home/bv/datasets/semseg_base/MACH-202-2_debug"
+args_dict["dataset"] = "MACH-202-2_debug"
 args_dict["checkpoint_filepath"] = args_dict["save_path"] + "/checkpoint/"
 
 if args_dict["machine"] == "local":
