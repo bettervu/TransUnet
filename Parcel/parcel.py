@@ -33,7 +33,7 @@ def extend_list(lol):
     return lol
 
 
-n_coords = 7
+n_coords = 2
 
 
 def interpolate(lol, n=n_coords, t="linear"):
@@ -97,7 +97,7 @@ def sort_coords(coords):
 
 df = pd.read_csv("dataset.csv")
 df["coords_vals"] = df["coords_vals"].apply(eval)
-df = df[(df["after_cleanup_len"] <= n_coords)]
+# df = df[(df["after_cleanup_len"] <= n_coords)]
 df["sorted_coords"] = df["coords_vals"].apply(sort_coords)
 df["interpolate"] = df["sorted_coords"].apply(interpolate)
 df["interpolate"] = df["interpolate"].apply(flatten)
@@ -128,7 +128,7 @@ df["images"] = images
 
 X = df["images"].to_list()
 X = np.array(X)
-y = np.array(df["interpolate"].to_list())
+y = np.array(df["bbox"].to_list())
 
 model = Sequential(
     [
@@ -153,9 +153,9 @@ early_stopping = EarlyStopping(monitor="val_loss", mode="min", verbose=1, patien
 callbacks.append(early_stopping)
 
 H = model.fit(
-    np.asarray(X[:-100]),
-    np.asarray(y[:-100]),
-    validation_data=(X[-100:], y[-100:]),
+    np.asarray(X[:-125]),
+    np.asarray(y[:-125]),
+    validation_data=(X[-125:], y[-125:]),
     batch_size=16,
     epochs=100,
     verbose=1,
