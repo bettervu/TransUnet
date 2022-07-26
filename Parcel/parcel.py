@@ -14,12 +14,12 @@ import tensorflow as tf
 from tensorflow.keras import Sequential
 from tensorflow.keras.applications import ResNet152V2
 from tensorflow.keras.callbacks import EarlyStopping
-from tensorflow.keras.layers import Conv2D, Dropout, Input, Reshape
+from tensorflow.keras.layers import Conv2D, Dense, Dropout, Flatten, Input, Permute, Reshape
 
 FS = gcsfs.GCSFileSystem()
 try:
     gpus = tf.config.list_physical_devices("GPU")
-    tf.config.set_visible_devices(gpus[1], "GPU")
+    tf.config.set_visible_devices(gpus[2], "GPU")
 except:
     print("Gpus not found")
 
@@ -77,8 +77,41 @@ def bbox(lol):
     return np.array([min(x), min(y), max(x), max(y)])
 
 
+def load_image(x):
+    byte_img = tf.io.read_file(x)
+    img = tf.io.decode_png(byte_img)
+    return img
+
+
+def distance(l1, l2=[0, 0]):
+    d = ((l1[0] - l2[0]) ** 2 + (l1[1] - l2[1]) ** 2) ** 0.5
+    return d
+
+
+def sort_coords(coords):
+    dst = list(map(distance, coords))
+    origin = dst.index(min(dst))
+    final_coords = coords[origin:] + coords[:origin]
+    return final_coords
+
+
 df = pd.read_csv("dataset.csv")
 df["coords_vals"] = df["coords_vals"].apply(eval)
+df = df[(df["after_cleanup_len"] <= n_coords)]
+df["sorted_coords"] = df["coords_vals"].apply(sort_coords)
+df["interpolate"] = df["sorted_coords"].apply(interpolate)
+df["interpolate"] = df["interpolate"].apply(flatten)
+df["bbox"] = df["sorted_coords"].apply(bbox)
+
+files = os.listdir("test_parcel/train")
+try:
+    files.remove(".DS_Store")
+except:
+    print("no hidden fle encountered")
+files = [int(file.split(".")[0]) for file in files]
+allowable_train_gtus = list(set(files).intersection(set(df["gtu_ids"])))
+df = df[df["gtu_ids"].isin(allowable_train_gtus)]
+
 images = []
 missing = []
 for i in df.index:
@@ -91,36 +124,12 @@ for i in df.index:
     except:
         missing.append(i)
 df.drop(missing, inplace=True)
-
-
-def distance(l1, l2=[0, 0]):
-    d = ((l1[0] - l2[0]) ** 2 + (l1[1] - l2[1]) ** 2) ** 0.5
-    return d
-
-
-def sort_coords(coords):
-    center = tuple(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), coords), [len(coords)] * 2))
-    coords = sorted(
-        coords,
-        key=lambda coord: (-135 - math.degrees(math.atan2(*tuple(map(operator.sub, coord, center))[::-1]))) % 360,
-    )
-    dst = list(map(distance, coords))
-    origin = dst.index(min(dst))
-    final_coords = coords[origin:] + coords[:origin]
-    return final_coords
-
-
 df["images"] = images
-df = df[(df["after_cleanup_len"] <= n_coords)]
-df["sorted_coords"] = df["coords_vals"].apply(sort_coords)
-df["interpolate"] = df["sorted_coords"].apply(interpolate)
-df["interpolate"] = df["interpolate"].apply(sort_coords)
-df["interpolate"] = df["interpolate"].apply(flatten)
-df["bbox"] = df["sorted_coords"].apply(bbox)
+
 X = df["images"].to_list()
-# X = [i / 255.0 for i in X]
 X = np.array(X)
 y = np.array(df["interpolate"].to_list())
+
 model = Sequential(
     [
         Input(shape=(256, 256, 3)),
@@ -134,12 +143,15 @@ model = Sequential(
         Reshape((2 * n_coords,)),
     ]
 )
+
 optimizer = tf.keras.optimizers.Adam(learning_rate=0.001, decay=0.0007)
 loss = tf.keras.losses.MeanSquaredError()
 model.compile(optimizer, loss)
 callbacks = []
 early_stopping = EarlyStopping(monitor="val_loss", mode="min", verbose=1, patience=20)
+
 callbacks.append(early_stopping)
+
 H = model.fit(
     np.asarray(X[:-100]),
     np.asarray(y[:-100]),
@@ -149,6 +161,7 @@ H = model.fit(
     verbose=1,
     callbacks=callbacks,
 )
+
 loss = H.history["loss"]
 val_loss = H.history["val_loss"]
 df = pd.DataFrame(loss)
@@ -156,5 +169,6 @@ df["loss"] = loss
 df["val_loss"] = val_loss
 df.to_csv("parcelUnet.csv")
 model.save("my_model")
+
 with tarfile.open("my_model.tar.gz", "w:gz") as tar:
     tar.add("my_model", arcname=os.path.basename("my_model"))

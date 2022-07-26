@@ -105,7 +105,7 @@ metric = WeightedMeanIoU(
         )
 
 model = builder.build_model()
-model.compile(optimizer='adam', loss=BinaryFocalLoss(gamma=2), metrics=metric)
+model.compile(optimizer='adam', loss=loss, metrics=metric)
 
 step_size = int(2.0 * len(train_input_names) / args_dict["batch_size"])
 callbacks = []
@@ -138,7 +138,7 @@ cp_callback = tf.keras.callbacks.ModelCheckpoint(
 callbacks.append(cp_callback)
 
 history = model.fit(
-    train_ds_batched, epochs=20, validation_data=val_ds_batched, callbacks=[callbacks]
+    train_ds_batched, epochs=100, validation_data=val_ds_batched, callbacks=[callbacks]
 )
 
 iou = history.history["wt_mean_iou"]
