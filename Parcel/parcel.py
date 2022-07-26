@@ -151,9 +151,9 @@ early_stopping = EarlyStopping(monitor="val_loss", mode="min", verbose=1, patien
 callbacks.append(early_stopping)
 
 H = model.fit(
-    np.asarray(X[:-200]),
-    np.asarray(y[:-200]),
-    validation_data=(X[-200:], y[-200:]),
+    np.asarray(X[:-100]),
+    np.asarray(y[:-100]),
+    validation_data=(X[-100:], y[-100:]),
     batch_size=4,
     epochs=100,
     verbose=1,
