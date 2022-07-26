@@ -33,7 +33,7 @@ def extend_list(lol):
     return lol
 
 
-n_coords = 2
+n_coords = 4
 
 
 def interpolate(lol, n=n_coords, t="linear"):
@@ -97,7 +97,7 @@ def sort_coords(coords):
 
 df = pd.read_csv("dataset.csv")
 df["coords_vals"] = df["coords_vals"].apply(eval)
-# df = df[(df["after_cleanup_len"] <= n_coords)]
+df = df[(df["after_cleanup_len"] == n_coords)]
 df["sorted_coords"] = df["coords_vals"].apply(sort_coords)
 df["interpolate"] = df["sorted_coords"].apply(interpolate)
 df["interpolate"] = df["interpolate"].apply(flatten)
