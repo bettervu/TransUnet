@@ -35,7 +35,7 @@ def extend_list(lol):
     return lol
 
 
-n_coords = 4
+n_coords = 10
 
 
 def interpolate(lol, n=n_coords, t="linear"):
