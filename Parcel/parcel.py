@@ -15,6 +15,8 @@ from tensorflow.keras import Sequential
 from tensorflow.keras.applications import ResNet152V2
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.layers import Conv2D, Dense, Dropout, Flatten, Input, Permute, Reshape
+from dTurk.models.SM_UNet import SM_UNet_Builder
+
 
 FS = gcsfs.GCSFileSystem()
 try:
@@ -143,15 +145,24 @@ X = df["images"].to_list()
 X = np.array(X)
 y = np.array(df["new"].to_list())
 
+builder = SM_UNet_Builder(
+    encoder_name='efficientnetv2-l',
+    input_shape=(256, 256, 3),
+    num_classes=3,
+    activation="softmax",
+    train_encoder=False,
+    encoder_weights="imagenet",
+    decoder_block_type="upsampling",
+    head_dropout=0,  # dropout at head
+    dropout=0,
+)
+
+model1 = builder.build_model()
+
 model = Sequential(
     [
         Input(shape=(256, 256, 3)),
-        ResNet152V2(include_top=False, input_shape=(256, 256, 3)),
-        Conv2D(512, 3, padding="same", activation="relu"),
-        Conv2D(512, 3, padding="same", activation="relu"),
-        Conv2D(256, 3, 2, padding="same", activation="relu"),
-        Conv2D(256, 2, 2, activation="relu"),
-        Dropout(0.05),
+        model1,
         Conv2D((2 * n_coords) + 6, 2, 2),
         Reshape(((2 * n_coords) + 6,)),
     ]
