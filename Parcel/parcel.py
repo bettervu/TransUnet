@@ -102,7 +102,7 @@ df["sorted_coords"] = df["coords_vals"].apply(sort_coords)
 df["interpolate"] = df["sorted_coords"].apply(interpolate)
 df["interpolate"] = df["interpolate"].apply(flatten)
 df["bbox"] = df["sorted_coords"].apply(bbox)
-
+df["new"] = df.apply(lambda x: np.append(x["bbox"], x["interpolate"]), axis=1)
 files = os.listdir("test_parcel/train")
 try:
     files.remove(".DS_Store")
@@ -128,7 +128,7 @@ df["images"] = images
 
 X = df["images"].to_list()
 X = np.array(X)
-y = np.array(df["interpolate"].to_list())
+y = np.array(df["new"].to_list())
 
 model = Sequential(
     [
@@ -139,8 +139,8 @@ model = Sequential(
         Conv2D(256, 3, 2, padding="same", activation="relu"),
         Conv2D(256, 2, 2, activation="relu"),
         Dropout(0.05),
-        Conv2D(2 * n_coords, 2, 2),
-        Reshape((2 * n_coords,)),
+        Conv2D((2 * n_coords) + 2, 2, 2),
+        Reshape(((2 * n_coords) + 2,)),
     ]
 )
 
