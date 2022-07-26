@@ -81,6 +81,10 @@ def center(lol):
     center = list(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), lol), [len(lol)] * 2))
     return np.array(center)
 
+def find_area(coords):
+    coords = np.rint(coords).astype(np.int32)
+    img = cv2.fillPoly(np.zeros((256,256)), [np.int32(coords)], (255,0,0))
+    return len((np.where(img==255))[0])
 
 def load_image(x):
     byte_img = tf.io.read_file(x)
@@ -105,7 +109,10 @@ df["coords_vals"] = df["coords_vals"].apply(eval)
 df = df[(df["after_cleanup_len"] <= n_coords)]
 df["sorted_coords"] = df["coords_vals"].apply(sort_coords)
 df["interpolate"] = df["sorted_coords"].apply(interpolate)
+df["poly_area"] = df["interpolate"].apply(find_area)
 df["interpolate"] = df["interpolate"].apply(flatten)
+df["poly_area_percent"] = (((df["poly_area"]/(256*256))*100))
+df = df[(df["poly_area_percent"] >= 40)]
 df["bbox"] = df["sorted_coords"].apply(bbox)
 df["center"] = df["sorted_coords"].apply(center)
 df["new"] = df.apply(lambda x: np.concatenate((x["bbox"], x["center"],  x["interpolate"])), axis=1)
