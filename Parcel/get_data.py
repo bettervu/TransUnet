@@ -205,7 +205,7 @@ def get_property_info(
 
 import os
 
-os.makedirs("test_parcel/train", exist_ok=True)
+os.makedirs("test_parcel/train1", exist_ok=True)
 
 gtu_ids = []
 before_cleanup_len = []
@@ -216,8 +216,8 @@ transformed_coords = []
 before_img = []
 ater_img = []
 for i, record in enumerate(records):
-    # print(i)
-    # try:
+    print(i)
+    try:
         gtu_id, property_id = record.id, record.property_id
         gtu_id_dir, property_id_dir = possible_image_location(property_id=property_id, gtu_id=gtu_id)
         img1 = open_image(gtu_id_dir, property_id_dir, "image.jpg")
@@ -253,8 +253,8 @@ for i, record in enumerate(records):
             after_cleanup_len.append(len(coords2))
             after_cleanup_coords.append(coords2)
             transformed_coords.append(coords3)
-    # except:
-    #     print("hiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii biiiiiiiiiiiiiiiiiiiiiiiiiiatch ")
+    except:
+        print("hiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii biiiiiiiiiiiiiiiiiiiiiiiiiiatch ")
 
 
 def sort_coords(coords):
