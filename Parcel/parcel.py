@@ -128,7 +128,7 @@ df["images"] = images
 
 X = df["images"].to_list()
 X = np.array(X)
-y = np.array(df["bbox"].to_list())
+y = np.array(df["interpolate"].to_list())
 
 model = Sequential(
     [
