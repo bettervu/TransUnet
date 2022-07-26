@@ -36,7 +36,7 @@ def extend_list(lol):
 n_coords = 10
 
 
-def interpolate(lol, n=n_coords, t="same"):
+def interpolate(lol, n=n_coords, t="linear"):
     if len(lol) == n:
         return lol
     elif len(lol) < n:
@@ -77,6 +77,11 @@ def bbox(lol):
     return np.array([min(x), min(y), max(x), max(y)])
 
 
+def center(lol):
+    center = list(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), lol), [len(lol)] * 2))
+    return np.array(center)
+
+
 def load_image(x):
     byte_img = tf.io.read_file(x)
     img = tf.io.decode_png(byte_img)
@@ -102,7 +107,8 @@ df["sorted_coords"] = df["coords_vals"].apply(sort_coords)
 df["interpolate"] = df["sorted_coords"].apply(interpolate)
 df["interpolate"] = df["interpolate"].apply(flatten)
 df["bbox"] = df["sorted_coords"].apply(bbox)
-df["new"] = df.apply(lambda x: np.append(x["bbox"], x["interpolate"]), axis=1)
+df["center"] = df["sorted_coords"].apply(center)
+df["new"] = df.apply(lambda x: np.append(x["bbox"], x["center"], x["interpolate"]), axis=1)
 files = os.listdir("test_parcel/train")
 try:
     files.remove(".DS_Store")
