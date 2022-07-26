@@ -33,7 +33,7 @@ def extend_list(lol):
     return lol
 
 
-n_coords = 15
+n_coords = 10
 
 
 def interpolate(lol, n=n_coords, t="linear"):
@@ -112,7 +112,7 @@ df["interpolate"] = df["sorted_coords"].apply(interpolate)
 df["poly_area"] = df["interpolate"].apply(find_area)
 df["interpolate"] = df["interpolate"].apply(flatten)
 df["poly_area_percent"] = (((df["poly_area"]/(256*256))*100))
-df = df[(df["poly_area_percent"] >= 40)]
+df = df[(df["poly_area_percent"] >= 30)]
 df["bbox"] = df["sorted_coords"].apply(bbox)
 df["center"] = df["sorted_coords"].apply(center)
 df["new"] = df.apply(lambda x: np.concatenate((x["bbox"], x["center"],  x["interpolate"])), axis=1)
