@@ -112,7 +112,7 @@ df["interpolate"] = df["sorted_coords"].apply(interpolate)
 df["poly_area"] = df["interpolate"].apply(find_area)
 df["interpolate"] = df["interpolate"].apply(flatten)
 df["poly_area_percent"] = (((df["poly_area"]/(256*256))*100))
-df = df[(df["poly_area_percent"] <= 40)]
+df = df[(df["poly_area_percent"] <= 30)]
 df["bbox"] = df["sorted_coords"].apply(bbox)
 df["center"] = df["sorted_coords"].apply(center)
 df["new"] = df.apply(lambda x: np.concatenate((x["bbox"], x["center"],  x["interpolate"])), axis=1)
@@ -170,7 +170,7 @@ H = model.fit(
     np.asarray(y[:-125]),
     validation_data=(X[-125:], y[-125:]),
     batch_size=16,
-    epochs=50,
+    epochs=15,
     verbose=1,
     callbacks=callbacks,
 )
