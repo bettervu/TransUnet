@@ -38,7 +38,7 @@ def extend_list(lol):
 n_coords = 7
 
 
-def interpolate(lol, n=n_coords, t="linear"):
+def interpolate(lol, n=n_coords, t="same"):
     if len(lol) == n:
         return lol
     elif len(lol) < n:
