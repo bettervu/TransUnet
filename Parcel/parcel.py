@@ -139,8 +139,8 @@ model = Sequential(
         Conv2D(256, 3, 2, padding="same", activation="relu"),
         Conv2D(256, 2, 2, activation="relu"),
         Dropout(0.05),
-        Conv2D((2 * n_coords) + 2, 2, 2),
-        Reshape(((2 * n_coords) + 2,)),
+        Conv2D((2 * n_coords) + 4, 2, 2),
+        Reshape(((2 * n_coords) + 4,)),
     ]
 )
 
