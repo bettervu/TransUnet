@@ -117,9 +117,9 @@ def four_corners_with_extremes(lol):
     x = [pt[0] for pt in lol]
     y = [pt[1] for pt in lol]
     left_most = lol[x.index(min(x))]
-    bottom_most = lol[x.index(max(y))]
+    bottom_most = lol[y.index(max(y))]
     right_most = lol[x.index(max(x))]
-    top_most = lol[x.index(min(y))]
+    top_most = lol[y.index(min(y))]
     top_left_dst = list(map(lambda x: distance(x, [0,0]), lol))
     bottom_left_dst = list(map(lambda x: distance(x, [0, 256]), lol))
     bottom_right_dst = list(map(lambda x: distance(x, [256, 256]), lol))
