@@ -142,9 +142,10 @@ df["coords_vals"] = df["coords_vals"].apply(eval)
 # df = df[(df["after_cleanup_len"] <= n_coords)]
 df["sorted_coords"] = df["coords_vals"].apply(sort_coords)
 # df["edges"] = df["sorted_coords"].apply(four_corners)
-df["edges"] = df["edges"].apply(flatten)
+
 df["interpolate"] = df["sorted_coords"].apply(interpolate)
 df["edges"] = df["interpolate"].apply(four_corners)
+df["edges"] = df["edges"].apply(flatten)
 df["poly_area"] = df["interpolate"].apply(find_area)
 df["interpolate"] = df["interpolate"].apply(flatten)
 df["poly_area_percent"] = (df["poly_area"] / (256 * 256)) * 100
