@@ -119,7 +119,7 @@ df["poly_area_percent"] = (df["poly_area"] / (256 * 256)) * 100
 # df = df[(df["poly_area_percent"] <= 30)]
 df["bbox"] = df["sorted_coords"].apply(bbox)
 df["center"] = df["sorted_coords"].apply(center)
-df["new"] = df.apply(lambda x: np.concatenate((x["bbox"], x["center"])), axis=1)
+df["new"] = df.apply(lambda x: np.append((x["bbox"], x["center"])), axis=1)
 files = os.listdir("test_parcel/train")
 try:
     files.remove(".DS_Store")
