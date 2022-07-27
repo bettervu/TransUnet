@@ -136,6 +136,7 @@ for i in df.index:
     # try:
         img = cv2.imread(f"test_parcel/train/{df['gtu_ids'][i]}.png")
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        print(img)
         images.append(img)
     #     if img.shape[2] == 4:
     #         missing.append(i)
