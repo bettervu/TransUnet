@@ -35,10 +35,10 @@ def extend_list(lol):
     return lol
 
 
-n_coords = 4
+n_coords = 8
 
 
-def interpolate(lol, n=n_coords, t="same"):
+def interpolate(lol, n=200, t="linear"):
     if len(lol) == n:
         return lol
     elif len(lol) < n:
@@ -104,14 +104,22 @@ def distance(l1, l2=[0, 0]):
 
 def four_corners(lol):
     top_left_dst = list(map(lambda x: distance(x, [0,0]), lol))
+    left_center_dst = list(map(lambda x: distance(x, [0, 128]), lol))
     bottom_left_dst = list(map(lambda x: distance(x, [0, 256]), lol))
+    bottom_center_dst = list(map(lambda x: distance(x, [128, 256]), lol))
     bottom_right_dst = list(map(lambda x: distance(x, [256, 256]), lol))
+    right_center_dst = list(map(lambda x: distance(x, [256, 128]), lol))
     top_right_dst = list(map(lambda x: distance(x, [256, 0]), lol))
+    top_center_dst = list(map(lambda x: distance(x, [128, 0]), lol))
     top_left = lol[top_left_dst.index(min(top_left_dst))]
+    left_center = lol[left_center_dst.index(min(left_center_dst))]
     bottom_left = lol[bottom_left_dst.index(min(bottom_left_dst))]
+    bottom_center = lol[bottom_center_dst.index(min(bottom_center_dst))]
     bottom_right = lol[bottom_right_dst.index(min(bottom_right_dst))]
+    right_center = lol[right_center_dst.index(min(right_center_dst))]
     top_right = lol[top_right_dst.index(min(top_right_dst))]
-    return np.array([top_left, bottom_left, bottom_right, top_right])
+    top_center = lol[top_center_dst.index(min(top_center_dst))]
+    return np.array([top_left, left_center, bottom_left, bottom_center, bottom_right, right_center, top_right, top_center])
 
 def four_extremes(lol):
     x = [pt[0] for pt in lol]
@@ -133,7 +141,7 @@ df = pd.read_csv("dataset.csv")
 df["coords_vals"] = df["coords_vals"].apply(eval)
 # df = df[(df["after_cleanup_len"] <= n_coords)]
 df["sorted_coords"] = df["coords_vals"].apply(sort_coords)
-df["edges"] = df["sorted_coords"].apply(four_extremes)
+df["edges"] = df["sorted_coords"].apply(four_corners)
 df["edges"] = df["edges"].apply(flatten)
 df["interpolate"] = df["sorted_coords"].apply(interpolate)
 df["poly_area"] = df["interpolate"].apply(find_area)
