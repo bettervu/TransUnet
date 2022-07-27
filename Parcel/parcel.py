@@ -35,7 +35,7 @@ def extend_list(lol):
     return lol
 
 
-n_coords = 4
+n_coords = 7
 
 
 def interpolate(lol, n=n_coords, t="same"):
@@ -184,7 +184,7 @@ H = model.fit(
     np.asarray(y[:-125]),
     validation_data=(X[-125:], y[-125:]),
     batch_size=16,
-    epochs=5,
+    epochs=10,
     verbose=1,
     callbacks=callbacks,
 )
