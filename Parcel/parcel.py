@@ -141,7 +141,7 @@ df = pd.read_csv("dataset.csv")
 df["coords_vals"] = df["coords_vals"].apply(eval)
 # df = df[(df["after_cleanup_len"] <= n_coords)]
 df["sorted_coords"] = df["coords_vals"].apply(sort_coords)
-df["edges"] = df["sorted_coords"].apply(four_corners)
+df["edges"] = df["sorted_coords"].apply(four_corners_with_extremes)
 df["edges"] = df["edges"].apply(flatten)
 df["interpolate"] = df["sorted_coords"].apply(interpolate)
 df["poly_area"] = df["interpolate"].apply(find_area)
