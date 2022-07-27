@@ -35,7 +35,7 @@ def extend_list(lol):
     return lol
 
 
-n_coords = 8
+n_coords = 4
 
 
 def interpolate(lol, n=n_coords, t="same"):
@@ -113,22 +113,14 @@ def four_corners(lol):
     top_right = lol[top_right_dst.index(min(top_right_dst))]
     return np.array([top_left, bottom_left, bottom_right, top_right])
 
-def four_corners_with_extremes(lol):
+def four_extremes(lol):
     x = [pt[0] for pt in lol]
     y = [pt[1] for pt in lol]
     left_most = lol[x.index(min(x))]
     bottom_most = lol[y.index(max(y))]
     right_most = lol[x.index(max(x))]
     top_most = lol[y.index(min(y))]
-    top_left_dst = list(map(lambda x: distance(x, [0,0]), lol))
-    bottom_left_dst = list(map(lambda x: distance(x, [0, 256]), lol))
-    bottom_right_dst = list(map(lambda x: distance(x, [256, 256]), lol))
-    top_right_dst = list(map(lambda x: distance(x, [256, 0]), lol))
-    top_left = lol[top_left_dst.index(min(top_left_dst))]
-    bottom_left = lol[bottom_left_dst.index(min(bottom_left_dst))]
-    bottom_right = lol[bottom_right_dst.index(min(bottom_right_dst))]
-    top_right = lol[top_right_dst.index(min(top_right_dst))]
-    return np.array([top_left, left_most, bottom_left, bottom_most, bottom_right, right_most, top_right, top_most])
+    return np.array([left_most, bottom_most, right_most, top_most])
 
 def sort_coords(coords):
     dst = list(map(distance, coords))
@@ -141,7 +133,7 @@ df = pd.read_csv("dataset.csv")
 df["coords_vals"] = df["coords_vals"].apply(eval)
 # df = df[(df["after_cleanup_len"] <= n_coords)]
 df["sorted_coords"] = df["coords_vals"].apply(sort_coords)
-df["edges"] = df["sorted_coords"].apply(four_corners_with_extremes)
+df["edges"] = df["sorted_coords"].apply(four_extremes)
 df["edges"] = df["edges"].apply(flatten)
 df["interpolate"] = df["sorted_coords"].apply(interpolate)
 df["poly_area"] = df["interpolate"].apply(find_area)
