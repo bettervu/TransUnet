@@ -35,7 +35,7 @@ def extend_list(lol):
     return lol
 
 
-n_coords = 7
+n_coords = 0
 
 
 def interpolate(lol, n=n_coords, t="same"):
@@ -83,10 +83,12 @@ def center(lol):
     center = list(map(operator.truediv, reduce(lambda x, y: map(operator.add, x, y), lol), [len(lol)] * 2))
     return np.array(center)
 
+
 def find_area(coords):
     coords = np.rint(coords).astype(np.int32)
-    img = cv2.fillPoly(np.zeros((256,256)), [np.int32(coords)], (255,0,0))
-    return len((np.where(img==255))[0])
+    img = cv2.fillPoly(np.zeros((256, 256)), [np.int32(coords)], (255, 0, 0))
+    return len((np.where(img == 255))[0])
+
 
 def load_image(x):
     byte_img = tf.io.read_file(x)
@@ -108,16 +110,16 @@ def sort_coords(coords):
 
 df = pd.read_csv("dataset.csv")
 df["coords_vals"] = df["coords_vals"].apply(eval)
-df = df[(df["after_cleanup_len"] <= n_coords)]
+# df = df[(df["after_cleanup_len"] <= n_coords)]
 df["sorted_coords"] = df["coords_vals"].apply(sort_coords)
 df["interpolate"] = df["sorted_coords"].apply(interpolate)
 df["poly_area"] = df["interpolate"].apply(find_area)
 df["interpolate"] = df["interpolate"].apply(flatten)
-df["poly_area_percent"] = (((df["poly_area"]/(256*256))*100))
+df["poly_area_percent"] = (df["poly_area"] / (256 * 256)) * 100
 # df = df[(df["poly_area_percent"] <= 30)]
 df["bbox"] = df["sorted_coords"].apply(bbox)
 df["center"] = df["sorted_coords"].apply(center)
-df["new"] = df.apply(lambda x: np.concatenate((x["bbox"], x["center"],  x["interpolate"])), axis=1)
+df["new"] = df.apply(lambda x: np.concatenate((x["bbox"], x["center"])), axis=1)
 files = os.listdir("test_parcel/train")
 try:
     files.remove(".DS_Store")
@@ -146,7 +148,7 @@ X = np.array(X)
 y = np.array(df["new"].to_list())
 
 builder = SM_UNet_Builder(
-    encoder_name='efficientnetv2-l',
+    encoder_name="efficientnetv2-l",
     input_shape=(256, 256, 3),
     num_classes=3,
     activation="softmax",
