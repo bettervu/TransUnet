@@ -141,7 +141,7 @@ for i in df.index:
             missing.append(i)
     except:
         missing.append(i)
-print(img.shape)
+print(images[0].shape)
 df.drop(missing, inplace=True)
 df["images"] = images
 print("No error until now")
