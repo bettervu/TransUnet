@@ -109,6 +109,7 @@ def sort_coords(coords):
 
 
 df = pd.read_csv("dataset.csv")
+print(len(df))
 df["coords_vals"] = df["coords_vals"].apply(eval)
 # df = df[(df["after_cleanup_len"] <= n_coords)]
 df["sorted_coords"] = df["coords_vals"].apply(sort_coords)
@@ -119,7 +120,7 @@ df["poly_area_percent"] = (df["poly_area"] / (256 * 256)) * 100
 # df = df[(df["poly_area_percent"] <= 30)]
 df["bbox"] = df["sorted_coords"].apply(bbox)
 df["center"] = df["sorted_coords"].apply(center)
-df["new"] = df.apply(lambda x: np.append((x["bbox"], x["center"])), axis=1)
+df["new"] = df.apply(lambda x: np.concatenate((x["bbox"], x["center"])), axis=1)
 files = os.listdir("test_parcel/train")
 try:
     files.remove(".DS_Store")
@@ -140,9 +141,10 @@ for i in df.index:
             missing.append(i)
     except:
         missing.append(i)
+print(img.shape)
 df.drop(missing, inplace=True)
 df["images"] = images
-
+print("No error until now")
 X = df["images"].to_list()
 X = np.array(X)
 y = np.array(df["new"].to_list())
