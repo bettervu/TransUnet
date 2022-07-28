@@ -11,22 +11,20 @@ import scipy.io
 import shutil
 
 
-input_shape = (256, 256, 3)  # input image shape
-patch_size = 32
-learning_rate = 0.001
-weight_decay = 0.0001
-batch_size = 32
-num_epochs = 100
-num_patches = (256 // patch_size) ** 2
-projection_dim = 64
+input_shape = (256, 256, 3)
+image_size = 256
+
+patch_size = 16  # Size of the patches to be extract from the input images
+num_patches = (image_size // patch_size) ** 2
+projection_dim = 256
 num_heads = 4
-# Size of the transformer layers
 transformer_units = [
     projection_dim * 2,
     projection_dim,
-]
-transformer_layers = 4
-mlp_head_units = [2048, 1024, 512, 64, 32]
+]  # Size of the transformer layers
+
+transformer_layers = 8
+mlp_head_units = [2048, 1024]
 
 
 def mlp(x, hidden_units, dropout_rate):
@@ -35,27 +33,11 @@ def mlp(x, hidden_units, dropout_rate):
         x = layers.Dropout(dropout_rate)(x)
     return x
 
+
 class Patches(layers.Layer):
     def __init__(self, patch_size):
         super(Patches, self).__init__()
         self.patch_size = patch_size
-
-    #     Override function to avoid error while saving model
-    def get_config(self):
-        config = super().get_config().copy()
-        config.update(
-            {
-                "input_shape": input_shape,
-                "patch_size": patch_size,
-                "num_patches": num_patches,
-                "projection_dim": projection_dim,
-                "num_heads": num_heads,
-                "transformer_units": transformer_units,
-                "transformer_layers": transformer_layers,
-                "mlp_head_units": mlp_head_units,
-            }
-        )
-        return config
 
     def call(self, images):
         batch_size = tf.shape(images)[0]
@@ -66,9 +48,9 @@ class Patches(layers.Layer):
             rates=[1, 1, 1, 1],
             padding="VALID",
         )
-        # return patches
-        return tf.reshape(patches, [batch_size, -1, patches.shape[-1]])
-
+        patch_dims = patches.shape[-1]
+        patches = tf.reshape(patches, [batch_size, -1, patch_dims])
+        return patches
 
 class PatchEncoder(layers.Layer):
     def __init__(self, num_patches, projection_dim):
@@ -79,44 +61,17 @@ class PatchEncoder(layers.Layer):
             input_dim=num_patches, output_dim=projection_dim
         )
 
-    # Override function to avoid error while saving model
-    def get_config(self):
-        config = super().get_config().copy()
-        config.update(
-            {
-                "input_shape": input_shape,
-                "patch_size": patch_size,
-                "num_patches": num_patches,
-                "projection_dim": projection_dim,
-                "num_heads": num_heads,
-                "transformer_units": transformer_units,
-                "transformer_layers": transformer_layers,
-                "mlp_head_units": mlp_head_units,
-            }
-        )
-        return config
-
     def call(self, patch):
         positions = tf.range(start=0, limit=self.num_patches, delta=1)
         encoded = self.projection(patch) + self.position_embedding(positions)
         return encoded
 
 
-def create_vit_object_detector(
-    n_coords,
-    input_shape=input_shape,
-    patch_size=patch_size,
-    num_patches=num_patches,
-    projection_dim=projection_dim,
-    num_heads=num_heads,
-    transformer_units=transformer_units,
-    transformer_layers=transformer_layers,
-    mlp_head_units=mlp_head_units
-):
+def create_vit_object_detector(n_coords):
     inputs = layers.Input(shape=input_shape)
-    # Create patches
+
     patches = Patches(patch_size)(inputs)
-    # Encode patches
+
     encoded_patches = PatchEncoder(num_patches, projection_dim)(patches)
 
     # Create multiple layers of the Transformer block.
@@ -131,7 +86,7 @@ def create_vit_object_detector(
         x2 = layers.Add()([attention_output, encoded_patches])
         # Layer normalization 2.
         x3 = layers.LayerNormalization(epsilon=1e-6)(x2)
-        # MLP
+        # MLP.
         x3 = mlp(x3, hidden_units=transformer_units, dropout_rate=0.1)
         # Skip connection 2.
         encoded_patches = layers.Add()([x3, x2])
@@ -139,13 +94,11 @@ def create_vit_object_detector(
     # Create a [batch_size, projection_dim] tensor.
     representation = layers.LayerNormalization(epsilon=1e-6)(encoded_patches)
     representation = layers.Flatten()(representation)
-    representation = layers.Dropout(0.3)(representation)
-    # Add MLP.
-    features = mlp(representation, hidden_units=mlp_head_units, dropout_rate=0.3)
+    representation = layers.Dropout(0.5)(representation)
 
-    bounding_box = layers.Dense((2 * n_coords) + 6 + 2)(
-        features
-    )  # Final four neurons that output bounding box
-
-    # return Keras model.
-    return keras.Model(inputs=inputs, outputs=bounding_box)
+    features = mlp(representation, hidden_units=mlp_head_units, dropout_rate=0.5)
+    # Classify outputs.
+    logits = layers.Dense((2 * n_coords) + 6 + 2)(features)
+    # Create the Keras model.
+    model = keras.Model(inputs=inputs, outputs=logits)
+    return model
