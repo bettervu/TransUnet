@@ -87,7 +87,7 @@ def create_vit_object_detector(n_coords):
 
     features = mlp(representation, hidden_units=mlp_head_units, dropout_rate=0.5)
     # Classify outputs.
-    logits = layers.Dense((2 * n_coords) + 6 + 2)(features)
+    logits = layers.Dense((2 * n_coords) + 6)(features)
     # Create the Keras model.
     model = keras.Model(inputs=inputs, outputs=logits)
     return model

@@ -8,16 +8,15 @@ from random import sample
 import cv2
 import gcsfs
 import matplotlib.pyplot as plt
-import ViT
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+import ViT
+from dTurk.models.SM_UNet import SM_UNet_Builder
 from tensorflow.keras import Sequential
 from tensorflow.keras.applications import ResNet152V2
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.layers import Conv2D, Dense, Dropout, Flatten, Input, Permute, Reshape
-from dTurk.models.SM_UNet import SM_UNet_Builder
-
 
 FS = gcsfs.GCSFileSystem()
 try:
@@ -39,7 +38,7 @@ def extend_list(lol):
 n_coords = 32
 
 
-def interpolate(lol, n=1000, t="linear"):
+def interpolate(lol, n=700, t="linear"):
     if len(lol) == n:
         return lol
     elif len(lol) < n:
@@ -274,7 +273,6 @@ def four_corners(lol):
             top_center_half_min_2,
             top_center_half_min_1,
             top_center_half_min_3,
-            top_left,
         ]
     )
 
@@ -349,6 +347,7 @@ builder = SM_UNet_Builder(
 #         model1,
 #         Conv2D((2 * n_coords) + 6 + 2, 2, 2),
 #         Flatten(),
+#         Dense(((4 * n_coords) + 6 + 2), activation="relu")
 #         Dense(((2 * n_coords) + 6 + 2), activation="relu"),
 #     ]
 # )
@@ -368,7 +367,7 @@ H = model.fit(
     np.asarray(y[:-125]),
     validation_data=(X[-125:], y[-125:]),
     batch_size=16,
-    epochs=6,
+    epochs=20,
     verbose=1,
     callbacks=callbacks,
 )
