@@ -214,9 +214,9 @@ model = Sequential(
     [
         Input(shape=(256, 256, 3)),
         model1,
-        Conv2D((2 * n_coords) + 6 + 1, 2, 2),
+        Conv2D((2 * n_coords) + 6 + 2, 2, 2),
         Flatten(),
-        Dense(((2 * n_coords) + 6 + 1), activation="relu"),
+        Dense(((2 * n_coords) + 6 + 2), activation="relu"),
     ]
 )
 
