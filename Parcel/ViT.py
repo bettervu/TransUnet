@@ -9,13 +9,13 @@ image_size = 256
 patch_size = 16  # Size of the patches to be extract from the input images
 num_patches = (image_size // patch_size) ** 2
 projection_dim = 256
-num_heads = 4
+num_heads = 8
 transformer_units = [
     projection_dim * 2,
     projection_dim,
 ]  # Size of the transformer layers
 
-transformer_layers = 8
+transformer_layers = 12
 mlp_head_units = [2048, 1024]
 
 
@@ -44,14 +44,13 @@ class Patches(layers.Layer):
         patches = tf.reshape(patches, [batch_size, -1, patch_dims])
         return patches
 
+
 class PatchEncoder(layers.Layer):
     def __init__(self, num_patches, projection_dim):
         super(PatchEncoder, self).__init__()
         self.num_patches = num_patches
         self.projection = layers.Dense(units=projection_dim)
-        self.position_embedding = layers.Embedding(
-            input_dim=num_patches, output_dim=projection_dim
-        )
+        self.position_embedding = layers.Embedding(input_dim=num_patches, output_dim=projection_dim)
 
     def call(self, patch):
         positions = tf.range(start=0, limit=self.num_patches, delta=1)
@@ -71,9 +70,7 @@ def create_vit_object_detector(n_coords):
         # Layer normalization 1.
         x1 = layers.LayerNormalization(epsilon=1e-6)(encoded_patches)
         # Create a multi-head attention layer.
-        attention_output = layers.MultiHeadAttention(
-            num_heads=num_heads, key_dim=projection_dim, dropout=0.1
-        )(x1, x1)
+        attention_output = layers.MultiHeadAttention(num_heads=num_heads, key_dim=projection_dim, dropout=0.1)(x1, x1)
         # Skip connection 1.
         x2 = layers.Add()([attention_output, encoded_patches])
         # Layer normalization 2.
