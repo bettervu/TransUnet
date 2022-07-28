@@ -38,7 +38,7 @@ def extend_list(lol):
 n_coords = 16
 
 
-def interpolate(lol, n=200, t="linear"):
+def interpolate(lol, n=400, t="linear"):
     if len(lol) == n:
         return lol
     elif len(lol) < n:
@@ -233,7 +233,7 @@ H = model.fit(
     np.asarray(y[:-125]),
     validation_data=(X[-125:], y[-125:]),
     batch_size=16,
-    epochs=5,
+    epochs=4,
     verbose=1,
     callbacks=callbacks,
 )
