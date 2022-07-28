@@ -8,6 +8,7 @@ from random import sample
 import cv2
 import gcsfs
 import matplotlib.pyplot as plt
+import ViT
 import numpy as np
 import pandas as pd
 import tensorflow as tf
@@ -340,17 +341,19 @@ builder = SM_UNet_Builder(
     dropout=0,
 )
 
-model1 = builder.build_model()
+# model1 = builder.build_model()
+#
+# model = Sequential(
+#     [
+#         Input(shape=(256, 256, 3)),
+#         model1,
+#         Conv2D((2 * n_coords) + 6 + 2, 2, 2),
+#         Flatten(),
+#         Dense(((2 * n_coords) + 6 + 2), activation="relu"),
+#     ]
+# )
 
-model = Sequential(
-    [
-        Input(shape=(256, 256, 3)),
-        model1,
-        Conv2D((2 * n_coords) + 6 + 2, 2, 2),
-        Flatten(),
-        Dense(((2 * n_coords) + 6 + 2), activation="relu"),
-    ]
-)
+model = ViT.create_vit_object_detector(n_coords)
 
 optimizer = tf.keras.optimizers.Adam(learning_rate=0.001, decay=0.0007)
 loss = tf.keras.losses.MeanSquaredError()
