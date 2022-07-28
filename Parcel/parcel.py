@@ -135,7 +135,7 @@ def four_corners(lol):
     top_center_half_max = lol[top_center_half_max_1_dst.index(min(top_center_half_max_1_dst))]
     top_center = lol[top_center_dst.index(min(top_center_dst))]
     top_center_half_min = lol[top_center_half_min_1_dst.index(min(top_center_half_min_1_dst))]
-    return np.array([top_left, left_center_half_min_1, left_center, left_center_half_max_1, bottom_left, bottom_center_half_min_1, bottom_center, bottom_center_half_max_1, bottom_right, right_center_half_max, right_center, right_center_half_min, top_right, top_center_half_max, top_center, top_center_half_min])
+    return np.array([top_left, left_center_half_min_1, left_center, left_center_half_max_1, bottom_left, bottom_center_half_min_1, bottom_center, bottom_center_half_max_1, bottom_right, right_center_half_max, right_center, right_center_half_min, top_right, top_center_half_max, top_center, top_center_half_min, top_left])
 
 def four_extremes(lol):
     x = [pt[0] for pt in lol]
@@ -214,14 +214,14 @@ model = Sequential(
     [
         Input(shape=(256, 256, 3)),
         model1,
-        Conv2D((2 * n_coords) + 6, 2, 2),
+        Conv2D((2 * n_coords) + 6 + 1, 2, 2),
         Flatten(),
-        Dense(((2 * n_coords) + 6), activation="relu"),
+        Dense(((2 * n_coords) + 6 + 1), activation="relu"),
     ]
 )
 
 optimizer = tf.keras.optimizers.Adam(learning_rate=0.001, decay=0.0007)
-loss = tf.keras.losses.MeanSquaredError()
+loss = tf.keras.losses.MeanAbsoluteError()
 model.compile(optimizer, loss)
 callbacks = []
 early_stopping = EarlyStopping(monitor="val_loss", mode="min", verbose=1, patience=20)
