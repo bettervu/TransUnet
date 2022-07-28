@@ -339,20 +339,18 @@ builder = SM_UNet_Builder(
     dropout=0,
 )
 
-# model1 = builder.build_model()
-#
-# model = Sequential(
-#     [
-#         Input(shape=(256, 256, 3)),
-#         model1,
-#         Conv2D((2 * n_coords) + 6 + 2, 2, 2),
-#         Flatten(),
-#         Dense(((4 * n_coords) + 6 + 2), activation="relu")
-#         Dense(((2 * n_coords) + 6 + 2), activation="relu"),
-#     ]
-# )
+model1 = builder.build_model()
 
-model = ViT.create_vit_object_detector(n_coords)
+model = Sequential(
+    [
+        Input(shape=(256, 256, 3)),
+        model1,
+        Conv2D((2 * n_coords) + 6, 2, 2),
+        Flatten(),
+        Dense(((4 * n_coords) + 8), activation="relu"),
+        Dense(((2 * n_coords) + 6), activation="relu"),
+    ]
+)
 
 optimizer = tf.keras.optimizers.Adam(learning_rate=0.001, decay=0.0007)
 loss = tf.keras.losses.MeanSquaredError()
