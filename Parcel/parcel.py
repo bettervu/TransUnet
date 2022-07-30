@@ -33,7 +33,7 @@ def extend_list(lol):
     return lol
 
 
-n_coords = 16
+n_coords = 4
 
 
 def interpolate(lol, n=1000, t="linear"):
@@ -100,7 +100,7 @@ def distance(l1, l2=[0, 0]):
 
 
 def four_corners(lol):
-    top_left_dst = list(map(lambda x: distance(x, [0,0]), lol))
+    top_left_dst = list(map(lambda x: distance(x, [0, 0]), lol))
     left_center_half_min_1_dst = list(map(lambda x: distance(x, [0, 64]), lol))
     left_center_dst = list(map(lambda x: distance(x, [0, 128]), lol))
     left_center_half_max_1_dst = list(map(lambda x: distance(x, [0, 192]), lol))
@@ -132,7 +132,28 @@ def four_corners(lol):
     top_center_half_max = lol[top_center_half_max_1_dst.index(min(top_center_half_max_1_dst))]
     top_center = lol[top_center_dst.index(min(top_center_dst))]
     top_center_half_min = lol[top_center_half_min_1_dst.index(min(top_center_half_min_1_dst))]
-    return np.array([top_left, left_center_half_min_1, left_center, left_center_half_max_1, bottom_left, bottom_center_half_min_1, bottom_center, bottom_center_half_max_1, bottom_right, right_center_half_max, right_center, right_center_half_min, top_right, top_center_half_max, top_center, top_center_half_min, top_left])
+    return np.array(
+        [
+            top_left,
+            left_center_half_min_1,
+            left_center,
+            left_center_half_max_1,
+            bottom_left,
+            bottom_center_half_min_1,
+            bottom_center,
+            bottom_center_half_max_1,
+            bottom_right,
+            right_center_half_max,
+            right_center,
+            right_center_half_min,
+            top_right,
+            top_center_half_max,
+            top_center,
+            top_center_half_min,
+            top_left,
+        ]
+    )
+
 
 # def four_corners(lol):
 #     top_left_dst = list(map(lambda x: distance(x, [0,0]), lol))
@@ -317,13 +338,23 @@ builder = SM_UNet_Builder(
     dropout=0,
 )
 model1 = builder.build_model()
+# model = Sequential(
+#     [
+#         Input(shape=(256, 256, 3)),
+#         model1,
+#         Conv2D((2 * n_coords) + 6 + 2, 2, 2),
+#         Flatten(),
+#         Dense(((2 * n_coords) + 6 + 2), activation="relu"),
+#     ]
+# )
+
 model = Sequential(
     [
         Input(shape=(256, 256, 3)),
         model1,
         Conv2D((2 * n_coords) + 6 + 2, 2, 2),
         Flatten(),
-        Dense(((2 * n_coords) + 6 + 2), activation="relu"),
+        Dense(4, activation="relu"),
     ]
 )
 optimizer = tf.keras.optimizers.Adam(learning_rate=0.001, decay=0.0007)
