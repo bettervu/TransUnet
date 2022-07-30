@@ -325,7 +325,8 @@ df["images"] = images
 print("No error until now")
 X = df["images"].to_list()
 X = np.array(X)
-y = np.array(df["new"].to_list())
+# y = np.array(df["new"].to_list())
+y = np.array(df["bbox"].to_list())
 builder = SM_UNet_Builder(
     encoder_name="efficientnetv2-l",
     input_shape=(256, 256, 3),
