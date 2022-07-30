@@ -325,7 +325,8 @@ df["images"] = images
 print("No error until now")
 X = df["images"].to_list()
 X = np.array(X)
-y = np.array(df["new"].to_list())
+# y = np.array(df["new"].to_list())
+y = np.array(df["bbox"].to_list())
 
 builder = SM_UNet_Builder(
     encoder_name="efficientnetv2-l",
@@ -341,14 +342,25 @@ builder = SM_UNet_Builder(
 
 model1 = builder.build_model()
 
+# model = Sequential(
+#     [
+#         Input(shape=(256, 256, 3)),
+#         model1,
+#         Conv2D((2 * n_coords) + 6, 2, 2),
+#         Flatten(),
+#         Dense(((4 * n_coords) + 8), activation="relu"),
+#         Dense(((2 * n_coords) + 6), activation="relu"),
+#     ]
+# )
+
 model = Sequential(
     [
         Input(shape=(256, 256, 3)),
         model1,
         Conv2D((2 * n_coords) + 6, 2, 2),
         Flatten(),
-        Dense(((4 * n_coords) + 8), activation="relu"),
-        Dense(((2 * n_coords) + 6), activation="relu"),
+        Dense(16, activation="relu"),
+        Dense(4, activation="relu"),
     ]
 )
 
