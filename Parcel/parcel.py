@@ -348,7 +348,7 @@ model = Sequential(
         Conv2D((2 * n_coords) + 6, 2, 2),
         Flatten(),
         Dense(((4 * n_coords) + 8), activation="relu"),
-        Dense(((2 * n_coords) + 6), activation="relu"),
+        Dense(((2 * n_coords) + 4), activation="relu"),
     ]
 )
 
