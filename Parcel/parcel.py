@@ -286,7 +286,7 @@ def sort_coords(coords):
     return final_coords
 
 
-df = pd.read_csv("new_dataset.csv")
+df = pd.read_csv("dataset.csv")
 df["coords_vals"] = df["coords_vals"].apply(eval)
 # df = df[(df["after_cleanup_len"] <= n_coords)]
 df["sorted_coords"] = df["coords_vals"].apply(sort_coords)
@@ -365,11 +365,11 @@ callbacks = []
 early_stopping = EarlyStopping(monitor="val_loss", mode="min", verbose=1, patience=20)
 callbacks.append(early_stopping)
 H = model.fit(
-    np.asarray(X[:-125]),
-    np.asarray(y[:-125]),
-    validation_data=(X[-125:], y[-125:]),
+    np.asarray(X[:-500]),
+    np.asarray(y[:-500]),
+    validation_data=(X[-500:], y[-500:]),
     batch_size=16,
-    epochs=15,
+    epochs=6,
     verbose=1,
     callbacks=callbacks,
 )
