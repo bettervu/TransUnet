@@ -365,9 +365,9 @@ callbacks = []
 early_stopping = EarlyStopping(monitor="val_loss", mode="min", verbose=1, patience=20)
 callbacks.append(early_stopping)
 H = model.fit(
-    np.asarray(X[:-75]),
-    np.asarray(y[:-75]),
-    validation_data=(X[-75:], y[-75:]),
+    np.asarray(X[:-25]),
+    np.asarray(y[:-25]),
+    validation_data=(X[-25:], y[-25:]),
     batch_size=16,
     epochs=15,
     verbose=1,
