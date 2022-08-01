@@ -19,7 +19,7 @@ from dTurk.utils.helpers import gsd_normalize
 FS = gcsfs.GCSFileSystem()
 
 with db_session() as sess:
-    records = sess.query(Gtu).offset(150000).limit(6000).all()
+    records = sess.query(Gtu).offset(150000).limit(30000).all()
 
 
 def possible_image_location(property_id, gtu_id):
