@@ -102,7 +102,7 @@ for classifier in classifiers:
             zeros = np.zeros_like(img)
             zeros[:,:,1] = pred[:,:,0]
             zeros[:,:,2] = pred[:,:,1]
-        pred = zeros
+            pred = zeros
 
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         cv2.imwrite(f"juliuspred/{classifier}_img.png", img)
