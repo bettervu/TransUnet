@@ -98,4 +98,4 @@ for classifier in classifiers:
         cv2.imwrite(f"juliuspred/{classifier}_img.png", img)
 
         pred = cv2.cvtColor(pred, cv2.COLOR_BGR2RGB)
-        cv2.imwrite(f"juliuspred/{classifier}_img.png", pred)
+        cv2.imwrite(f"juliuspred/{classifier}_pred.png", pred)
