@@ -83,7 +83,7 @@ for classifier in classifiers:
         img, pred = predict(file, model, model_type)
 
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        cv2.imwrite(f"juliuspred/{classifier}_img.png", img)
+        cv2.imwrite(f"no/{classifier}_img.png", img)
 
         pred = cv2.cvtColor(pred, cv2.COLOR_BGR2RGB)
         cv2.imwrite(f"juliuspred/{classifier}_img.png", pred)
