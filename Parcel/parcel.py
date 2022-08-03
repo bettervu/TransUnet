@@ -287,6 +287,7 @@ def sort_coords(coords):
 
 
 df = pd.read_csv("dataset.csv")
+print(len(df))
 df["coords_vals"] = df["coords_vals"].apply(eval)
 # df = df[(df["after_cleanup_len"] <= n_coords)]
 df["sorted_coords"] = df["coords_vals"].apply(sort_coords)
