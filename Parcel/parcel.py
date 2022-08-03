@@ -287,7 +287,7 @@ def sort_coords(coords):
 
 
 df = pd.read_csv("dataset.csv")
-print(len(df))
+
 df["coords_vals"] = df["coords_vals"].apply(eval)
 # df = df[(df["after_cleanup_len"] <= n_coords)]
 df["sorted_coords"] = df["coords_vals"].apply(sort_coords)
@@ -328,6 +328,7 @@ X = df["images"].to_list()
 X = np.array(X)
 y = np.array(df["new"].to_list())
 # y = np.array(df["bbox"].to_list())
+len(X)
 builder = SM_UNet_Builder(
     encoder_name="efficientnetv2-l",
     input_shape=(256, 256, 3),
