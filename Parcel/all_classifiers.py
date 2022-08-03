@@ -29,26 +29,31 @@ def custom_load(classifier_id, num_classes):
     )
 
     model.load_weights(
-        '/home/bv/dTurk/classifiers/' + classifier_record.name + '/model.ckpt/variables/variables'.format(classifier_record.name))
+        "/home/bv/dTurk/classifiers/"
+        + classifier_record.name
+        + "/model.ckpt/variables/variables".format(classifier_record.name)
+    )
 
     return model, str(classifier_record.frontend)
 
-def predict(image, model, name, image_gsd=19):
-    img = Image.open("juliuspred/"+image)
+
+def predict(image, model, name, num_classes, image_gsd=19):
+    img = Image.open("juliuspred/" + image)
     img = np.array(img)
     if len(img.shape) > 2 and img.shape[2] == 4:
         img = cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
-    c,d,e = prepare_and_slice_image(img, image_gsd, 10, 256, 0)
+    c, d, e = prepare_and_slice_image(img, image_gsd, 10, 256, 0)
     c = model_builder.get_preprocessing(name)(c)
     p, q, h, w, r = c.shape
     c = c.reshape(p * q, h, w, r)
     prediction = model.predict(c)
-    pred = prepare_and_stitch_image(prediction.reshape((p, q, h, w, r)), image_gsd, 10, d, e, 256, 0)
+    pred = prepare_and_stitch_image(prediction.reshape((p, q, h, w, num_classes)), image_gsd, 10, d, e, 256, 0)
     pred = pred * 255
     return img, pred
 
+
 files = ["stadium.jpg"]
-predict_options = {'base_layer': 'Building', 'depth': 0.001, 'use_transformed_footprint': False}
+predict_options = {"base_layer": "Building", "depth": 0.001, "use_transformed_footprint": False}
 
 classifiers = {
     "debris": 6801,
@@ -68,19 +73,26 @@ classifiers = {
     "trampoline": 6528,
     "vegetation": 8058,
     "water-hazard": 7619,
-    "yard-debris": 6594
+    "yard-debris": 6594,
 }
 
 for classifier in classifiers:
 
-    if classifier == "missing_shingles" or classifier == "rust" or classifier == "shingles" or classifier == "solar_panels" or classifier == "vegetation" or classifier == "yard-debris":
+    if (
+        classifier == "missing_shingles"
+        or classifier == "rust"
+        or classifier == "shingles"
+        or classifier == "solar_panels"
+        or classifier == "vegetation"
+        or classifier == "yard-debris"
+    ):
         num_classes = 2
     else:
         num_classes = 3
 
     model, model_type = custom_load(classifiers[classifier], num_classes)
     for file in files:
-        img, pred = predict(file, model, model_type)
+        img, pred = predict(file, model, model_type, num_classes)
 
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         cv2.imwrite(f"juliuspred/{classifier}_img.png", img)
