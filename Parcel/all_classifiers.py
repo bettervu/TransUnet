@@ -60,7 +60,6 @@ files = ["stadium.jpg"]
 predict_options = {"base_layer": "Building", "depth": 0.001, "use_transformed_footprint": False}
 
 classifiers = {
-    "ponding": 7399,
     "rust": 7621,
     "shingles": 6217,
     "solar_panels": 6234,
