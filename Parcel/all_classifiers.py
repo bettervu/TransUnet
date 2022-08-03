@@ -73,10 +73,10 @@ classifiers = {
     # "missing_shingles": 8649,
     # "overhang": 7325,
     # "patching": 8431,
-    "ponding": 7399,
-    "rust": 7621,
-    "shingles": 6217,
-    "solar_panels": 6234,
+    # "ponding": 7399,
+    # "rust": 7621,
+    # "shingles": 6217,
+    # "solar_panels": 6234,
     "staining": 7092,
     "structural-damage": 6658,
     "swimming_pool": 7146,
@@ -117,4 +117,4 @@ for classifier in classifiers:
         pred = cv2.cvtColor(pred, cv2.COLOR_BGR2RGB)
         cv2.imwrite(f"juliuspred/{classifier}_pred.png", pred)
 
-        print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
+        print("\n\n\n\n")
