@@ -77,7 +77,7 @@ classifiers = {
 }
 
 for classifier in classifiers:
-
+    print(classifier)
     if (
         classifier == "missing_shingles"
         or classifier == "rust"
