@@ -328,7 +328,7 @@ X = df["images"].to_list()
 X = np.array(X)
 y = np.array(df["new"].to_list())
 # y = np.array(df["bbox"].to_list())
-len(X)
+
 builder = SM_UNet_Builder(
     encoder_name="efficientnetv2-l",
     input_shape=(256, 256, 3),
@@ -370,8 +370,8 @@ H = model.fit(
     np.asarray(X[:-500]),
     np.asarray(y[:-500]),
     validation_data=(X[-500:], y[-500:]),
-    batch_size=12,
-    epochs=6,
+    batch_size=16,
+    epochs=3,
     verbose=1,
     callbacks=callbacks,
 )
