@@ -98,6 +98,12 @@ for classifier in classifiers:
     for file in files:
         img, pred = predict(file, model, model_type, num_classes)
 
+        if pred.shape[2] == 2:
+            zeros = np.zeros_like(img)
+            zeros[:,:,1] = pred[:,:,0]
+            zeros[:,:,2] = pred[:,:,1]
+        pred = zeros
+
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         cv2.imwrite(f"juliuspred/{classifier}_img.png", img)
 
