@@ -205,16 +205,9 @@ def get_property_info(
 
 import os
 
-os.makedirs("test_parcel/train1", exist_ok=True)
+os.makedirs("test_parcel/train", exist_ok=True)
 
-gtu_ids = []
-before_cleanup_len = []
-after_cleanup_len = []
-before_cleanup_coords = []
-after_cleanup_coords = []
-transformed_coords = []
-before_img = []
-ater_img = []
+
 for i, record in enumerate(records):
     print(i)
     try:
@@ -231,7 +224,6 @@ for i, record in enumerate(records):
             if img1.shape[2] == 4:
                 img1 = cv2.cvtColor(img1, cv2.COLOR_RGBA2RGB)
             img2 = img1.copy()
-            before_img.append(img1)
             lnglat_coords = [(coord["lng"], coord["lat"]) for coord in record.boundary_data["coords"]]
             property_poly = coords_to_valid_poly(lnglat_coords)
             property_poly, property_mask1, coords = get_property_info(
@@ -247,12 +239,6 @@ for i, record in enumerate(records):
             img2, coords3 = reshift_coords(img1, property_mask1, coords2, record.gsd)
             img2 = cv2.cvtColor(img2, cv2.COLOR_BGR2RGB)
             cv2.imwrite(f"test_parcel/train/{gtu_id}.png", img2)
-            gtu_ids.append(gtu_id)
-            before_cleanup_len.append(len(coords1))
-            before_cleanup_coords.append(coords1)
-            after_cleanup_len.append(len(coords2))
-            after_cleanup_coords.append(coords2)
-            transformed_coords.append(coords3)
     except:
         print("hiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii biiiiiiiiiiiiiiiiiiiiiiiiiiatch ")
 
@@ -297,29 +283,3 @@ def interpolate(lol, n=20, t="same"):
 def distance(l1, l2=[0, 0]):
     d = ((l1[0] - l2[0]) ** 2 + (l1[1] - l2[1]) ** 2) ** 0.5
     return d
-
-
-df = pd.DataFrame()
-
-
-df["gtu_ids"] = gtu_ids
-df["before_cleanup_len"] = before_cleanup_len
-df["after_cleanup_len"] = after_cleanup_len
-df["before_cleanup_coords"] = before_cleanup_coords
-df["after_cleanup_coords"] = after_cleanup_coords
-df["transformed_coords"] = transformed_coords
-
-
-df["before_cleanup_coords"] = df["before_cleanup_coords"].apply(lambda x: [list(i) for i in x])
-df["after_cleanup_coords"] = df["after_cleanup_coords"].apply(lambda x: [list(i) for i in x])
-df["coords_vals"] = df["transformed_coords"].apply(lambda x: [list(i) for i in x])
-
-
-df["sorted_coords"] = df["coords_vals"].apply(sort_coords)
-df["interpolate_same"] = df["sorted_coords"].apply(interpolate)
-df["interpolate_same"] = df["interpolate_same"].apply(lambda x: [list(i) for i in x])
-df["interpolate_linear"] = df["sorted_coords"].apply(lambda x: interpolate(x, t="linear"))
-df["interpolate_linear"] = df["interpolate_linear"].apply(lambda x: [list(i) for i in x])
-
-
-df.to_csv("dataset.csv", index=None)
