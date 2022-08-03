@@ -9,7 +9,7 @@ from dTurk.utils.helpers import prepare_and_slice_image, prepare_and_stitch_imag
 import warnings
 
 warnings.filterwarnings('ignore')
-
+warnings.filterwarnings('ignore', message='WARNING:tensorflow:Value in checkpoint could not be found')
 
 def custom_load(classifier_id, num_classes):
     with db_session() as sess:
