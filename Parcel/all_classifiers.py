@@ -6,6 +6,10 @@ from dTurk.builders import model_builder
 from bp.database import VisionClassifier, db_session
 from dTurk.utils.helpers import prepare_and_slice_image, prepare_and_stitch_image
 
+import warnings
+
+warnings.filterwarnings('ignore')
+
 
 def custom_load(classifier_id, num_classes):
     with db_session() as sess:
