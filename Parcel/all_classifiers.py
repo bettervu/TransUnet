@@ -34,7 +34,7 @@ def custom_load(classifier_id, num_classes):
     return model, str(classifier_record.frontend)
 
 def predict(image, model, name, image_gsd=19):
-    img = Image.open(image)
+    img = Image.open(juliuspred+'/'+image)
     img = np.array(img)
     if len(img.shape) > 2 and img.shape[2] == 4:
         img = cv2.cvtColor(img, cv2.COLOR_BGRA2BGR)
