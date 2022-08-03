@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 from PIL import Image
+import tensorflow as tf
 from sqlalchemy.orm import joinedload
 from dTurk.builders import model_builder
 from bp.database import VisionClassifier, db_session
@@ -10,6 +11,12 @@ import warnings
 
 warnings.filterwarnings('ignore')
 warnings.filterwarnings('ignore', message='WARNING:tensorflow:Value in checkpoint could not be found')
+
+try:
+    gpus = tf.config.list_physical_devices("GPU")
+    tf.config.set_visible_devices(gpus[2], "GPU")
+except:
+    print("Gpus not found")
 
 def custom_load(classifier_id, num_classes):
     with db_session() as sess:
@@ -60,6 +67,13 @@ files = ["stadium.jpg"]
 predict_options = {"base_layer": "Building", "depth": 0.001, "use_transformed_footprint": False}
 
 classifiers = {
+    # "debris": 6801,
+    # "footprint": 4789,
+    # "hvac": 6560,
+    # "missing_shingles": 8649,
+    # "overhang": 7325,
+    # "patching": 8431,
+    "ponding": 7399,
     "rust": 7621,
     "shingles": 6217,
     "solar_panels": 6234,
