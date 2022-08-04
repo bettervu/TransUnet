@@ -42,8 +42,6 @@ df = pd.read_csv("dataset.csv")
 # df["new"] = df["new"].apply(lambda x:list(x))
 # df.to_csv("dataset.csv")
 
-print(df.columns)
-
 df["new"] = df["new"].apply(eval)
 
 
@@ -56,7 +54,7 @@ files = [int(file.split(".")[0]) for file in files]
 allowable_train_gtus = list(set(files).intersection(set(df["gtu_ids"])))
 df = df[df["gtu_ids"].isin(allowable_train_gtus)]
 
-train_df = df.sample(frac=0.9)
+train_df = df.sample(frac=0.8)
 val_df = df.drop(train_df.index)
 
 
@@ -78,11 +76,11 @@ val_labels = tf.data.Dataset.from_tensor_slices(y_val)
 
 train = tf.data.Dataset.zip((train_images, train_labels))
 train = train.shuffle(5000)
-train = train.batch(16)
+train = train.batch(12)
 train = train.prefetch(4)
 val = tf.data.Dataset.zip((val_images, val_labels))
 val = val.shuffle(1000)
-val = val.batch(16)
+val = val.batch(12)
 val = val.prefetch(4)
 
 print("No error until now")
@@ -120,7 +118,6 @@ callbacks.append(early_stopping)
 H = model.fit(
     train,
     validation_data=(val),
-    batch_size=8,
     epochs=4,
     verbose=1,
     callbacks=callbacks,
