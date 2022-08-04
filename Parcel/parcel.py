@@ -101,7 +101,7 @@ H = model.fit(
     np.asarray(X[:-500]),
     np.asarray(y[:-500]),
     validation_data=(X[-500:], y[-500:]),
-    batch_size=12,
+    batch_size=8,
     epochs=4,
     verbose=1,
     callbacks=callbacks,
