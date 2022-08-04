@@ -9,7 +9,7 @@ from tensorflow.keras import Sequential
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.layers import Conv2D, Dense, Dropout, Flatten, Input, Permute, Reshape
 
-from helpers import interpolate, flatten, bbox, center, find_area, sort_coords, load_image, sixtyfour_corners
+from helpers import interpolate, flatten, bbox, center, find_area, sort_coords, load_image, sixtyfour_corners, thirtytwo_corners
 from dTurk.models.SM_UNet import SM_UNet_Builder
 
 FS = gcsfs.GCSFileSystem()
@@ -20,29 +20,29 @@ except:
     print("Gpus not found")
 
 
-n_coords = 64
+n_coords = 32
 
 
 df = pd.read_csv("dataset.csv")
 
-# df["coords_vals"] = df["coords_vals"].apply(eval)
-# df["sorted_coords"] = df["coords_vals"].apply(sort_coords)
-# df["interpolate"] = df["sorted_coords"].apply(interpolate)
-# # df["edges"] = df["sorted_coords"].apply(four_corners)
-# df["edges"] = df["interpolate"].apply(sixtyfour_corners)
-# df["edges"] = df["edges"].apply(flatten)
-# df["bbox"] = df["sorted_coords"].apply(bbox)
-# df["center"] = df["sorted_coords"].apply(center)
-# # df["poly_area"] = df["interpolate"].apply(find_area)
-# # df["interpolate"] = df["interpolate"].apply(flatten)
-# # df["poly_area_percent"] = (df["poly_area"] / (256 * 256)) * 100
-# # df = df[(df["poly_area_percent"] <= 30)]
-#
-# df["new"] = df.apply(lambda x: np.concatenate((x["bbox"], x["center"], x["edges"])), axis=1)
-# df["new"] = df["new"].apply(lambda x:list(x))
-# df.to_csv("dataset.csv")
+df["coords_vals"] = df["coords_vals"].apply(eval)
+df["sorted_coords"] = df["coords_vals"].apply(sort_coords)
+df["interpolate"] = df["sorted_coords"].apply(interpolate)
+# df["edges"] = df["sorted_coords"].apply(four_corners)
+df["edges"] = df["interpolate"].apply(thirtytwo_corners)
+df["edges"] = df["edges"].apply(flatten)
+df["bbox"] = df["sorted_coords"].apply(bbox)
+df["center"] = df["sorted_coords"].apply(center)
+# df["poly_area"] = df["interpolate"].apply(find_area)
+# df["interpolate"] = df["interpolate"].apply(flatten)
+# df["poly_area_percent"] = (df["poly_area"] / (256 * 256)) * 100
+# df = df[(df["poly_area_percent"] <= 30)]
 
-df["new"] = df["new"].apply(eval)
+df["new"] = df.apply(lambda x: np.concatenate((x["bbox"], x["center"], x["edges"])), axis=1)
+df["new"] = df["new"].apply(lambda x:list(x))
+
+# df.to_csv("dataset.csv")
+# df["new"] = df["new"].apply(eval)
 
 
 files = os.listdir("test_parcel/train")
@@ -56,7 +56,6 @@ df = df[df["gtu_ids"].isin(allowable_train_gtus)]
 
 train_df = df.sample(frac=0.8)
 val_df = df.drop(train_df.index)
-
 
 train_images = tf.data.Dataset.from_tensor_slices(
     [f"test_parcel/train/{train_df['gtu_ids'][i]}.png" for i in train_df.index]
