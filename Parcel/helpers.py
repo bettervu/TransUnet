@@ -15,7 +15,7 @@ def extend_list(lol):
     return lol
 
 
-def interpolate(lol, n=1000, t="linear"):
+def interpolate(lol, n=1203, t="linear"):
     if len(lol) == n:
         return lol
     elif len(lol) < n:
@@ -85,298 +85,395 @@ def sort_coords(coords):
     return final_coords
 
 
-def four_corners(lol):
-    top_left_dst = list(map(lambda x: distance(x, [0,0]), lol))
-    bottom_left_dst = list(map(lambda x: distance(x, [0, 256]), lol))
-    bottom_right_dst = list(map(lambda x: distance(x, [256, 256]), lol))
-    top_right_dst = list(map(lambda x: distance(x, [256, 0]), lol))
-    top_left = lol[top_left_dst.index(min(top_left_dst))]
-    bottom_left = lol[bottom_left_dst.index(min(bottom_left_dst))]
-    bottom_right = lol[bottom_right_dst.index(min(bottom_right_dst))]
-    top_right = lol[top_right_dst.index(min(top_right_dst))]
-    return np.array([top_left, bottom_left, bottom_right, top_right, top_left])
-
-
-def eight_corners(lol):
-    top_left_dst = list(map(lambda x: distance(x, [0,0]), lol))
-    left_center_dst = list(map(lambda x: distance(x, [0, 128]), lol))
-    bottom_left_dst = list(map(lambda x: distance(x, [0, 256]), lol))
-    bottom_center_dst = list(map(lambda x: distance(x, [128, 256]), lol))
-    bottom_right_dst = list(map(lambda x: distance(x, [256, 256]), lol))
-    right_center_dst = list(map(lambda x: distance(x, [256, 128]), lol))
-    top_right_dst = list(map(lambda x: distance(x, [256, 0]), lol))
-    top_center_dst = list(map(lambda x: distance(x, [128, 0]), lol))
-    top_left = lol[top_left_dst.index(min(top_left_dst))]
-    left_center = lol[left_center_dst.index(min(left_center_dst))]
-    bottom_left = lol[bottom_left_dst.index(min(bottom_left_dst))]
-    bottom_center = lol[bottom_center_dst.index(min(bottom_center_dst))]
-    bottom_right = lol[bottom_right_dst.index(min(bottom_right_dst))]
-    right_center = lol[right_center_dst.index(min(right_center_dst))]
-    top_right = lol[top_right_dst.index(min(top_right_dst))]
-    top_center = lol[top_center_dst.index(min(top_center_dst))]
-    return np.array([top_left, left_center, bottom_left, bottom_center, bottom_right, right_center, top_right, top_center, top_left])
-
-
-def sixteen_corners(lol):
-    top_left_dst = list(map(lambda x: distance(x, [0, 0]), lol))
-    left_center_half_min_1_dst = list(map(lambda x: distance(x, [0, 64]), lol))
-    left_center_dst = list(map(lambda x: distance(x, [0, 128]), lol))
-    left_center_half_max_1_dst = list(map(lambda x: distance(x, [0, 192]), lol))
-    bottom_left_dst = list(map(lambda x: distance(x, [0, 256]), lol))
-    bottom_center_half_min_1_dst = list(map(lambda x: distance(x, [64, 256]), lol))
-    bottom_center_dst = list(map(lambda x: distance(x, [128, 256]), lol))
-    bottom_center_half_max_1_dst = list(map(lambda x: distance(x, [192, 256]), lol))
-    bottom_right_dst = list(map(lambda x: distance(x, [256, 256]), lol))
-    right_center_half_max_1_dst = list(map(lambda x: distance(x, [256, 192]), lol))
-    right_center_dst = list(map(lambda x: distance(x, [256, 128]), lol))
-    right_center_half_min_1_dst = list(map(lambda x: distance(x, [256, 64]), lol))
-    top_right_dst = list(map(lambda x: distance(x, [256, 0]), lol))
-    top_center_half_max_1_dst = list(map(lambda x: distance(x, [192, 0]), lol))
-    top_center_dst = list(map(lambda x: distance(x, [128, 0]), lol))
-    top_center_half_min_1_dst = list(map(lambda x: distance(x, [64, 0]), lol))
-    top_left = lol[top_left_dst.index(min(top_left_dst))]
-    left_center_half_min_1 = lol[left_center_half_min_1_dst.index(min(left_center_half_min_1_dst))]
-    left_center = lol[left_center_dst.index(min(left_center_dst))]
-    left_center_half_max_1 = lol[left_center_half_max_1_dst.index(min(left_center_half_max_1_dst))]
-    bottom_left = lol[bottom_left_dst.index(min(bottom_left_dst))]
-    bottom_center_half_min_1 = lol[bottom_center_half_min_1_dst.index(min(bottom_center_half_min_1_dst))]
-    bottom_center = lol[bottom_center_dst.index(min(bottom_center_dst))]
-    bottom_center_half_max_1 = lol[bottom_center_half_max_1_dst.index(min(bottom_center_half_max_1_dst))]
-    bottom_right = lol[bottom_right_dst.index(min(bottom_right_dst))]
-    right_center_half_max = lol[right_center_half_max_1_dst.index(min(right_center_half_max_1_dst))]
-    right_center = lol[right_center_dst.index(min(right_center_dst))]
-    right_center_half_min = lol[right_center_half_min_1_dst.index(min(right_center_half_min_1_dst))]
-    top_right = lol[top_right_dst.index(min(top_right_dst))]
-    top_center_half_max = lol[top_center_half_max_1_dst.index(min(top_center_half_max_1_dst))]
-    top_center = lol[top_center_dst.index(min(top_center_dst))]
-    top_center_half_min = lol[top_center_half_min_1_dst.index(min(top_center_half_min_1_dst))]
-    return np.array(
-        [
-            top_left,
-            left_center_half_min_1,
-            left_center,
-            left_center_half_max_1,
-            bottom_left,
-            bottom_center_half_min_1,
-            bottom_center,
-            bottom_center_half_max_1,
-            bottom_right,
-            right_center_half_max,
-            right_center,
-            right_center_half_min,
-            top_right,
-            top_center_half_max,
-            top_center,
-            top_center_half_min,
-            top_left,
-        ]
-    )
-
-
-
-def thirtytwo_corners(lol):
-    top_left_dst = list(map(lambda x: distance(x, [0, 0]), lol))
-    left_center_half_min_2_dst = list(map(lambda x: distance(x, [0, 32]), lol))
-    left_center_half_min_1_dst = list(map(lambda x: distance(x, [0, 64]), lol))
-    left_center_half_min_3_dst = list(map(lambda x: distance(x, [0, 96]), lol))
-    left_center_dst = list(map(lambda x: distance(x, [0, 128]), lol))
-    left_center_half_max_2_dst = list(map(lambda x: distance(x, [0, 160]), lol))
-    left_center_half_max_1_dst = list(map(lambda x: distance(x, [0, 192]), lol))
-    left_center_half_max_3_dst = list(map(lambda x: distance(x, [0, 224]), lol))
-    bottom_left_dst = list(map(lambda x: distance(x, [0, 256]), lol))
-    bottom_center_half_min_2_dst = list(map(lambda x: distance(x, [32, 256]), lol))
-    bottom_center_half_min_1_dst = list(map(lambda x: distance(x, [64, 256]), lol))
-    bottom_center_half_min_3_dst = list(map(lambda x: distance(x, [96, 256]), lol))
-    bottom_center_dst = list(map(lambda x: distance(x, [128, 256]), lol))
-    bottom_center_half_max_2_dst = list(map(lambda x: distance(x, [160, 256]), lol))
-    bottom_center_half_max_1_dst = list(map(lambda x: distance(x, [192, 256]), lol))
-    bottom_center_half_max_3_dst = list(map(lambda x: distance(x, [224, 256]), lol))
-    bottom_right_dst = list(map(lambda x: distance(x, [256, 256]), lol))
-    right_center_half_max_2_dst = list(map(lambda x: distance(x, [256, 224]), lol))
-    right_center_half_max_1_dst = list(map(lambda x: distance(x, [256, 192]), lol))
-    right_center_half_max_3_dst = list(map(lambda x: distance(x, [256, 160]), lol))
-    right_center_dst = list(map(lambda x: distance(x, [256, 128]), lol))
-    right_center_half_min_2_dst = list(map(lambda x: distance(x, [256, 96]), lol))
-    right_center_half_min_1_dst = list(map(lambda x: distance(x, [256, 64]), lol))
-    right_center_half_min_3_dst = list(map(lambda x: distance(x, [256, 32]), lol))
-    top_right_dst = list(map(lambda x: distance(x, [256, 0]), lol))
-    top_center_half_max_2_dst = list(map(lambda x: distance(x, [224, 0]), lol))
-    top_center_half_max_1_dst = list(map(lambda x: distance(x, [192, 0]), lol))
-    top_center_half_max_3_dst = list(map(lambda x: distance(x, [160, 0]), lol))
-    top_center_dst = list(map(lambda x: distance(x, [128, 0]), lol))
-    top_center_half_min_2_dst = list(map(lambda x: distance(x, [96, 0]), lol))
-    top_center_half_min_1_dst = list(map(lambda x: distance(x, [64, 0]), lol))
-    top_center_half_min_3_dst = list(map(lambda x: distance(x, [32, 0]), lol))
-    top_left = lol[top_left_dst.index(min(top_left_dst))]
-    left_center_half_min_2 = lol[left_center_half_min_2_dst.index(min(left_center_half_min_2_dst))]
-    left_center_half_min_1 = lol[left_center_half_min_1_dst.index(min(left_center_half_min_1_dst))]
-    left_center_half_min_3 = lol[left_center_half_min_3_dst.index(min(left_center_half_min_3_dst))]
-    left_center = lol[left_center_dst.index(min(left_center_dst))]
-    left_center_half_max_2 = lol[left_center_half_max_2_dst.index(min(left_center_half_max_2_dst))]
-    left_center_half_max_1 = lol[left_center_half_max_1_dst.index(min(left_center_half_max_1_dst))]
-    left_center_half_max_3 = lol[left_center_half_max_3_dst.index(min(left_center_half_max_3_dst))]
-    bottom_left = lol[bottom_left_dst.index(min(bottom_left_dst))]
-    bottom_center_half_min_2 = lol[bottom_center_half_min_2_dst.index(min(bottom_center_half_min_2_dst))]
-    bottom_center_half_min_1 = lol[bottom_center_half_min_1_dst.index(min(bottom_center_half_min_1_dst))]
-    bottom_center_half_min_3 = lol[bottom_center_half_min_3_dst.index(min(bottom_center_half_min_3_dst))]
-    bottom_center = lol[bottom_center_dst.index(min(bottom_center_dst))]
-    bottom_center_half_max_2 = lol[bottom_center_half_max_2_dst.index(min(bottom_center_half_max_2_dst))]
-    bottom_center_half_max_1 = lol[bottom_center_half_max_1_dst.index(min(bottom_center_half_max_1_dst))]
-    bottom_center_half_max_3 = lol[bottom_center_half_max_3_dst.index(min(bottom_center_half_max_3_dst))]
-    bottom_right = lol[bottom_right_dst.index(min(bottom_right_dst))]
-    right_center_half_max_2 = lol[right_center_half_max_2_dst.index(min(right_center_half_max_2_dst))]
-    right_center_half_max_1 = lol[right_center_half_max_1_dst.index(min(right_center_half_max_1_dst))]
-    right_center_half_max_3 = lol[right_center_half_max_3_dst.index(min(right_center_half_max_3_dst))]
-    right_center = lol[right_center_dst.index(min(right_center_dst))]
-    right_center_half_min_2 = lol[right_center_half_min_2_dst.index(min(right_center_half_min_2_dst))]
-    right_center_half_min_1 = lol[right_center_half_min_1_dst.index(min(right_center_half_min_1_dst))]
-    right_center_half_min_3 = lol[right_center_half_min_3_dst.index(min(right_center_half_min_3_dst))]
-    top_right = lol[top_right_dst.index(min(top_right_dst))]
-    top_center_half_max_2 = lol[top_center_half_max_2_dst.index(min(top_center_half_max_2_dst))]
-    top_center_half_max_1 = lol[top_center_half_max_1_dst.index(min(top_center_half_max_1_dst))]
-    top_center_half_max_3 = lol[top_center_half_max_3_dst.index(min(top_center_half_max_3_dst))]
-    top_center = lol[top_center_dst.index(min(top_center_dst))]
-    top_center_half_min_2 = lol[top_center_half_min_2_dst.index(min(top_center_half_min_2_dst))]
-    top_center_half_min_1 = lol[top_center_half_min_1_dst.index(min(top_center_half_min_1_dst))]
-    top_center_half_min_3 = lol[top_center_half_min_3_dst.index(min(top_center_half_min_3_dst))]
-    return np.array(
-        [
-            top_left,
-            left_center_half_min_2,
-            left_center_half_min_1,
-            left_center_half_min_3,
-            left_center,
-            left_center_half_max_2,
-            left_center_half_max_1,
-            left_center_half_max_3,
-            bottom_left,
-            bottom_center_half_min_2,
-            bottom_center_half_min_1,
-            bottom_center_half_min_3,
-            bottom_center,
-            bottom_center_half_max_2,
-            bottom_center_half_max_1,
-            bottom_center_half_max_3,
-            bottom_right,
-            right_center_half_max_2,
-            right_center_half_max_1,
-            right_center_half_max_3,
-            right_center,
-            right_center_half_min_2,
-            right_center_half_min_1,
-            right_center_half_min_3,
-            top_right,
-            top_center_half_max_2,
-            top_center_half_max_1,
-            top_center_half_max_3,
-            top_center,
-            top_center_half_min_2,
-            top_center_half_min_1,
-            top_center_half_min_3,
-            top_left,
-        ]
-    )
+# def four_corners(lol):
+#     top_left_dst = list(map(lambda x: distance(x, [0, 0]), lol))
+#     bottom_left_dst = list(map(lambda x: distance(x, [0, 256]), lol))
+#     bottom_right_dst = list(map(lambda x: distance(x, [256, 256]), lol))
+#     top_right_dst = list(map(lambda x: distance(x, [256, 0]), lol))
+#     top_left = lol[top_left_dst.index(min(top_left_dst))]
+#     bottom_left = lol[bottom_left_dst.index(min(bottom_left_dst))]
+#     bottom_right = lol[bottom_right_dst.index(min(bottom_right_dst))]
+#     top_right = lol[top_right_dst.index(min(top_right_dst))]
+#     return np.array([top_left, bottom_left, bottom_right, top_right, top_left])
+#
+#
+# def eight_corners(lol):
+#     top_left_dst = list(map(lambda x: distance(x, [0, 0]), lol))
+#     left_center_dst = list(map(lambda x: distance(x, [0, 128]), lol))
+#     bottom_left_dst = list(map(lambda x: distance(x, [0, 256]), lol))
+#     bottom_center_dst = list(map(lambda x: distance(x, [128, 256]), lol))
+#     bottom_right_dst = list(map(lambda x: distance(x, [256, 256]), lol))
+#     right_center_dst = list(map(lambda x: distance(x, [256, 128]), lol))
+#     top_right_dst = list(map(lambda x: distance(x, [256, 0]), lol))
+#     top_center_dst = list(map(lambda x: distance(x, [128, 0]), lol))
+#     top_left = lol[top_left_dst.index(min(top_left_dst))]
+#     left_center = lol[left_center_dst.index(min(left_center_dst))]
+#     bottom_left = lol[bottom_left_dst.index(min(bottom_left_dst))]
+#     bottom_center = lol[bottom_center_dst.index(min(bottom_center_dst))]
+#     bottom_right = lol[bottom_right_dst.index(min(bottom_right_dst))]
+#     right_center = lol[right_center_dst.index(min(right_center_dst))]
+#     top_right = lol[top_right_dst.index(min(top_right_dst))]
+#     top_center = lol[top_center_dst.index(min(top_center_dst))]
+#     return np.array(
+#         [top_left, left_center, bottom_left, bottom_center, bottom_right, right_center, top_right, top_center, top_left]
+#     )
+#
+#
+# def sixteen_corners(lol):
+#     top_left_dst = list(map(lambda x: distance(x, [0, 0]), lol))
+#     left_center_half_min_1_dst = list(map(lambda x: distance(x, [0, 64]), lol))
+#     left_center_dst = list(map(lambda x: distance(x, [0, 128]), lol))
+#     left_center_half_max_1_dst = list(map(lambda x: distance(x, [0, 192]), lol))
+#     bottom_left_dst = list(map(lambda x: distance(x, [0, 256]), lol))
+#     bottom_center_half_min_1_dst = list(map(lambda x: distance(x, [64, 256]), lol))
+#     bottom_center_dst = list(map(lambda x: distance(x, [128, 256]), lol))
+#     bottom_center_half_max_1_dst = list(map(lambda x: distance(x, [192, 256]), lol))
+#     bottom_right_dst = list(map(lambda x: distance(x, [256, 256]), lol))
+#     right_center_half_max_1_dst = list(map(lambda x: distance(x, [256, 192]), lol))
+#     right_center_dst = list(map(lambda x: distance(x, [256, 128]), lol))
+#     right_center_half_min_1_dst = list(map(lambda x: distance(x, [256, 64]), lol))
+#     top_right_dst = list(map(lambda x: distance(x, [256, 0]), lol))
+#     top_center_half_max_1_dst = list(map(lambda x: distance(x, [192, 0]), lol))
+#     top_center_dst = list(map(lambda x: distance(x, [128, 0]), lol))
+#     top_center_half_min_1_dst = list(map(lambda x: distance(x, [64, 0]), lol))
+#     top_left = lol[top_left_dst.index(min(top_left_dst))]
+#     left_center_half_min_1 = lol[left_center_half_min_1_dst.index(min(left_center_half_min_1_dst))]
+#     left_center = lol[left_center_dst.index(min(left_center_dst))]
+#     left_center_half_max_1 = lol[left_center_half_max_1_dst.index(min(left_center_half_max_1_dst))]
+#     bottom_left = lol[bottom_left_dst.index(min(bottom_left_dst))]
+#     bottom_center_half_min_1 = lol[bottom_center_half_min_1_dst.index(min(bottom_center_half_min_1_dst))]
+#     bottom_center = lol[bottom_center_dst.index(min(bottom_center_dst))]
+#     bottom_center_half_max_1 = lol[bottom_center_half_max_1_dst.index(min(bottom_center_half_max_1_dst))]
+#     bottom_right = lol[bottom_right_dst.index(min(bottom_right_dst))]
+#     right_center_half_max = lol[right_center_half_max_1_dst.index(min(right_center_half_max_1_dst))]
+#     right_center = lol[right_center_dst.index(min(right_center_dst))]
+#     right_center_half_min = lol[right_center_half_min_1_dst.index(min(right_center_half_min_1_dst))]
+#     top_right = lol[top_right_dst.index(min(top_right_dst))]
+#     top_center_half_max = lol[top_center_half_max_1_dst.index(min(top_center_half_max_1_dst))]
+#     top_center = lol[top_center_dst.index(min(top_center_dst))]
+#     top_center_half_min = lol[top_center_half_min_1_dst.index(min(top_center_half_min_1_dst))]
+#     return np.array(
+#         [
+#             top_left,
+#             left_center_half_min_1,
+#             left_center,
+#             left_center_half_max_1,
+#             bottom_left,
+#             bottom_center_half_min_1,
+#             bottom_center,
+#             bottom_center_half_max_1,
+#             bottom_right,
+#             right_center_half_max,
+#             right_center,
+#             right_center_half_min,
+#             top_right,
+#             top_center_half_max,
+#             top_center,
+#             top_center_half_min,
+#             top_left,
+#         ]
+#     )
+#
+#
+# def thirtytwo_corners(lol):
+#     top_left_dst = list(map(lambda x: distance(x, [0, 0]), lol))
+#     left_center_half_min_2_dst = list(map(lambda x: distance(x, [0, 32]), lol))
+#     left_center_half_min_1_dst = list(map(lambda x: distance(x, [0, 64]), lol))
+#     left_center_half_min_3_dst = list(map(lambda x: distance(x, [0, 96]), lol))
+#     left_center_dst = list(map(lambda x: distance(x, [0, 128]), lol))
+#     left_center_half_max_2_dst = list(map(lambda x: distance(x, [0, 160]), lol))
+#     left_center_half_max_1_dst = list(map(lambda x: distance(x, [0, 192]), lol))
+#     left_center_half_max_3_dst = list(map(lambda x: distance(x, [0, 224]), lol))
+#     bottom_left_dst = list(map(lambda x: distance(x, [0, 256]), lol))
+#     bottom_center_half_min_2_dst = list(map(lambda x: distance(x, [32, 256]), lol))
+#     bottom_center_half_min_1_dst = list(map(lambda x: distance(x, [64, 256]), lol))
+#     bottom_center_half_min_3_dst = list(map(lambda x: distance(x, [96, 256]), lol))
+#     bottom_center_dst = list(map(lambda x: distance(x, [128, 256]), lol))
+#     bottom_center_half_max_2_dst = list(map(lambda x: distance(x, [160, 256]), lol))
+#     bottom_center_half_max_1_dst = list(map(lambda x: distance(x, [192, 256]), lol))
+#     bottom_center_half_max_3_dst = list(map(lambda x: distance(x, [224, 256]), lol))
+#     bottom_right_dst = list(map(lambda x: distance(x, [256, 256]), lol))
+#     right_center_half_max_2_dst = list(map(lambda x: distance(x, [256, 224]), lol))
+#     right_center_half_max_1_dst = list(map(lambda x: distance(x, [256, 192]), lol))
+#     right_center_half_max_3_dst = list(map(lambda x: distance(x, [256, 160]), lol))
+#     right_center_dst = list(map(lambda x: distance(x, [256, 128]), lol))
+#     right_center_half_min_2_dst = list(map(lambda x: distance(x, [256, 96]), lol))
+#     right_center_half_min_1_dst = list(map(lambda x: distance(x, [256, 64]), lol))
+#     right_center_half_min_3_dst = list(map(lambda x: distance(x, [256, 32]), lol))
+#     top_right_dst = list(map(lambda x: distance(x, [256, 0]), lol))
+#     top_center_half_max_2_dst = list(map(lambda x: distance(x, [224, 0]), lol))
+#     top_center_half_max_1_dst = list(map(lambda x: distance(x, [192, 0]), lol))
+#     top_center_half_max_3_dst = list(map(lambda x: distance(x, [160, 0]), lol))
+#     top_center_dst = list(map(lambda x: distance(x, [128, 0]), lol))
+#     top_center_half_min_2_dst = list(map(lambda x: distance(x, [96, 0]), lol))
+#     top_center_half_min_1_dst = list(map(lambda x: distance(x, [64, 0]), lol))
+#     top_center_half_min_3_dst = list(map(lambda x: distance(x, [32, 0]), lol))
+#     top_left = lol[top_left_dst.index(min(top_left_dst))]
+#     left_center_half_min_2 = lol[left_center_half_min_2_dst.index(min(left_center_half_min_2_dst))]
+#     left_center_half_min_1 = lol[left_center_half_min_1_dst.index(min(left_center_half_min_1_dst))]
+#     left_center_half_min_3 = lol[left_center_half_min_3_dst.index(min(left_center_half_min_3_dst))]
+#     left_center = lol[left_center_dst.index(min(left_center_dst))]
+#     left_center_half_max_2 = lol[left_center_half_max_2_dst.index(min(left_center_half_max_2_dst))]
+#     left_center_half_max_1 = lol[left_center_half_max_1_dst.index(min(left_center_half_max_1_dst))]
+#     left_center_half_max_3 = lol[left_center_half_max_3_dst.index(min(left_center_half_max_3_dst))]
+#     bottom_left = lol[bottom_left_dst.index(min(bottom_left_dst))]
+#     bottom_center_half_min_2 = lol[bottom_center_half_min_2_dst.index(min(bottom_center_half_min_2_dst))]
+#     bottom_center_half_min_1 = lol[bottom_center_half_min_1_dst.index(min(bottom_center_half_min_1_dst))]
+#     bottom_center_half_min_3 = lol[bottom_center_half_min_3_dst.index(min(bottom_center_half_min_3_dst))]
+#     bottom_center = lol[bottom_center_dst.index(min(bottom_center_dst))]
+#     bottom_center_half_max_2 = lol[bottom_center_half_max_2_dst.index(min(bottom_center_half_max_2_dst))]
+#     bottom_center_half_max_1 = lol[bottom_center_half_max_1_dst.index(min(bottom_center_half_max_1_dst))]
+#     bottom_center_half_max_3 = lol[bottom_center_half_max_3_dst.index(min(bottom_center_half_max_3_dst))]
+#     bottom_right = lol[bottom_right_dst.index(min(bottom_right_dst))]
+#     right_center_half_max_2 = lol[right_center_half_max_2_dst.index(min(right_center_half_max_2_dst))]
+#     right_center_half_max_1 = lol[right_center_half_max_1_dst.index(min(right_center_half_max_1_dst))]
+#     right_center_half_max_3 = lol[right_center_half_max_3_dst.index(min(right_center_half_max_3_dst))]
+#     right_center = lol[right_center_dst.index(min(right_center_dst))]
+#     right_center_half_min_2 = lol[right_center_half_min_2_dst.index(min(right_center_half_min_2_dst))]
+#     right_center_half_min_1 = lol[right_center_half_min_1_dst.index(min(right_center_half_min_1_dst))]
+#     right_center_half_min_3 = lol[right_center_half_min_3_dst.index(min(right_center_half_min_3_dst))]
+#     top_right = lol[top_right_dst.index(min(top_right_dst))]
+#     top_center_half_max_2 = lol[top_center_half_max_2_dst.index(min(top_center_half_max_2_dst))]
+#     top_center_half_max_1 = lol[top_center_half_max_1_dst.index(min(top_center_half_max_1_dst))]
+#     top_center_half_max_3 = lol[top_center_half_max_3_dst.index(min(top_center_half_max_3_dst))]
+#     top_center = lol[top_center_dst.index(min(top_center_dst))]
+#     top_center_half_min_2 = lol[top_center_half_min_2_dst.index(min(top_center_half_min_2_dst))]
+#     top_center_half_min_1 = lol[top_center_half_min_1_dst.index(min(top_center_half_min_1_dst))]
+#     top_center_half_min_3 = lol[top_center_half_min_3_dst.index(min(top_center_half_min_3_dst))]
+#     return np.array(
+#         [
+#             top_left,
+#             left_center_half_min_2,
+#             left_center_half_min_1,
+#             left_center_half_min_3,
+#             left_center,
+#             left_center_half_max_2,
+#             left_center_half_max_1,
+#             left_center_half_max_3,
+#             bottom_left,
+#             bottom_center_half_min_2,
+#             bottom_center_half_min_1,
+#             bottom_center_half_min_3,
+#             bottom_center,
+#             bottom_center_half_max_2,
+#             bottom_center_half_max_1,
+#             bottom_center_half_max_3,
+#             bottom_right,
+#             right_center_half_max_2,
+#             right_center_half_max_1,
+#             right_center_half_max_3,
+#             right_center,
+#             right_center_half_min_2,
+#             right_center_half_min_1,
+#             right_center_half_min_3,
+#             top_right,
+#             top_center_half_max_2,
+#             top_center_half_max_1,
+#             top_center_half_max_3,
+#             top_center,
+#             top_center_half_min_2,
+#             top_center_half_min_1,
+#             top_center_half_min_3,
+#             top_left,
+#         ]
+#     )
 
 
 def sixtyfour_corners(lol):
     top_left_dst = list(map(lambda x: distance(x, [0, 0]), lol))
+    left_center_half_min_4_dst = list(map(lambda x: distance(x, [0, 16]), lol))
     left_center_half_min_2_dst = list(map(lambda x: distance(x, [0, 32]), lol))
+    left_center_half_min_6_dst = list(map(lambda x: distance(x, [0, 48]), lol))
     left_center_half_min_1_dst = list(map(lambda x: distance(x, [0, 64]), lol))
+    left_center_half_min_5_dst = list(map(lambda x: distance(x, [0, 80]), lol))
     left_center_half_min_3_dst = list(map(lambda x: distance(x, [0, 96]), lol))
+    left_center_half_min_7_dst = list(map(lambda x: distance(x, [0, 112]), lol))
     left_center_dst = list(map(lambda x: distance(x, [0, 128]), lol))
+    left_center_half_max_4_dst = list(map(lambda x: distance(x, [0, 144]), lol))
     left_center_half_max_2_dst = list(map(lambda x: distance(x, [0, 160]), lol))
+    left_center_half_max_6_dst = list(map(lambda x: distance(x, [0, 176]), lol))
     left_center_half_max_1_dst = list(map(lambda x: distance(x, [0, 192]), lol))
+    left_center_half_max_5_dst = list(map(lambda x: distance(x, [0, 208]), lol))
     left_center_half_max_3_dst = list(map(lambda x: distance(x, [0, 224]), lol))
+    left_center_half_max_7_dst = list(map(lambda x: distance(x, [0, 240]), lol))
     bottom_left_dst = list(map(lambda x: distance(x, [0, 256]), lol))
+    bottom_center_half_min_4_dst = list(map(lambda x: distance(x, [16, 256]), lol))
     bottom_center_half_min_2_dst = list(map(lambda x: distance(x, [32, 256]), lol))
+    bottom_center_half_min_6_dst = list(map(lambda x: distance(x, [48, 256]), lol))
     bottom_center_half_min_1_dst = list(map(lambda x: distance(x, [64, 256]), lol))
+    bottom_center_half_min_5_dst = list(map(lambda x: distance(x, [80, 256]), lol))
     bottom_center_half_min_3_dst = list(map(lambda x: distance(x, [96, 256]), lol))
+    bottom_center_half_min_7_dst = list(map(lambda x: distance(x, [112, 256]), lol))
     bottom_center_dst = list(map(lambda x: distance(x, [128, 256]), lol))
+    bottom_center_half_max_4_dst = list(map(lambda x: distance(x, [144, 256]), lol))
     bottom_center_half_max_2_dst = list(map(lambda x: distance(x, [160, 256]), lol))
+    bottom_center_half_max_6_dst = list(map(lambda x: distance(x, [176, 256]), lol))
     bottom_center_half_max_1_dst = list(map(lambda x: distance(x, [192, 256]), lol))
+    bottom_center_half_max_5_dst = list(map(lambda x: distance(x, [208, 256]), lol))
     bottom_center_half_max_3_dst = list(map(lambda x: distance(x, [224, 256]), lol))
+    bottom_center_half_max_7_dst = list(map(lambda x: distance(x, [240, 256]), lol))
     bottom_right_dst = list(map(lambda x: distance(x, [256, 256]), lol))
+    right_center_half_max_4_dst = list(map(lambda x: distance(x, [256, 240]), lol))
     right_center_half_max_2_dst = list(map(lambda x: distance(x, [256, 224]), lol))
+    right_center_half_max_6_dst = list(map(lambda x: distance(x, [256, 208]), lol))
     right_center_half_max_1_dst = list(map(lambda x: distance(x, [256, 192]), lol))
+    right_center_half_max_5_dst = list(map(lambda x: distance(x, [256, 176]), lol))
     right_center_half_max_3_dst = list(map(lambda x: distance(x, [256, 160]), lol))
+    right_center_half_max_7_dst = list(map(lambda x: distance(x, [256, 144]), lol))
     right_center_dst = list(map(lambda x: distance(x, [256, 128]), lol))
+    right_center_half_min_4_dst = list(map(lambda x: distance(x, [256, 112]), lol))
     right_center_half_min_2_dst = list(map(lambda x: distance(x, [256, 96]), lol))
+    right_center_half_min_6_dst = list(map(lambda x: distance(x, [256, 80]), lol))
     right_center_half_min_1_dst = list(map(lambda x: distance(x, [256, 64]), lol))
+    right_center_half_min_5_dst = list(map(lambda x: distance(x, [256, 48]), lol))
     right_center_half_min_3_dst = list(map(lambda x: distance(x, [256, 32]), lol))
+    right_center_half_min_7_dst = list(map(lambda x: distance(x, [256, 16]), lol))
     top_right_dst = list(map(lambda x: distance(x, [256, 0]), lol))
+    top_center_half_max_4_dst = list(map(lambda x: distance(x, [240, 0]), lol))
     top_center_half_max_2_dst = list(map(lambda x: distance(x, [224, 0]), lol))
+    top_center_half_max_6_dst = list(map(lambda x: distance(x, [208, 0]), lol))
     top_center_half_max_1_dst = list(map(lambda x: distance(x, [192, 0]), lol))
+    top_center_half_max_5_dst = list(map(lambda x: distance(x, [176, 0]), lol))
     top_center_half_max_3_dst = list(map(lambda x: distance(x, [160, 0]), lol))
+    top_center_half_max_7_dst = list(map(lambda x: distance(x, [144, 0]), lol))
     top_center_dst = list(map(lambda x: distance(x, [128, 0]), lol))
+    top_center_half_min_4_dst = list(map(lambda x: distance(x, [112, 0]), lol))
     top_center_half_min_2_dst = list(map(lambda x: distance(x, [96, 0]), lol))
+    top_center_half_min_6_dst = list(map(lambda x: distance(x, [80, 0]), lol))
     top_center_half_min_1_dst = list(map(lambda x: distance(x, [64, 0]), lol))
+    top_center_half_min_5_dst = list(map(lambda x: distance(x, [48, 0]), lol))
     top_center_half_min_3_dst = list(map(lambda x: distance(x, [32, 0]), lol))
+    top_center_half_min_7_dst = list(map(lambda x: distance(x, [16, 0]), lol))
     top_left = lol[top_left_dst.index(min(top_left_dst))]
+    left_center_half_min_4 = lol[left_center_half_min_4_dst.index(min(left_center_half_min_4_dst))]
     left_center_half_min_2 = lol[left_center_half_min_2_dst.index(min(left_center_half_min_2_dst))]
+    left_center_half_min_6 = lol[left_center_half_min_6_dst.index(min(left_center_half_min_6_dst))]
     left_center_half_min_1 = lol[left_center_half_min_1_dst.index(min(left_center_half_min_1_dst))]
+    left_center_half_min_5 = lol[left_center_half_min_5_dst.index(min(left_center_half_min_5_dst))]
     left_center_half_min_3 = lol[left_center_half_min_3_dst.index(min(left_center_half_min_3_dst))]
+    left_center_half_min_7 = lol[left_center_half_min_7_dst.index(min(left_center_half_min_7_dst))]
     left_center = lol[left_center_dst.index(min(left_center_dst))]
+    left_center_half_max_4 = lol[left_center_half_max_4_dst.index(min(left_center_half_max_4_dst))]
     left_center_half_max_2 = lol[left_center_half_max_2_dst.index(min(left_center_half_max_2_dst))]
+    left_center_half_max_6 = lol[left_center_half_max_6_dst.index(min(left_center_half_max_6_dst))]
     left_center_half_max_1 = lol[left_center_half_max_1_dst.index(min(left_center_half_max_1_dst))]
+    left_center_half_max_5 = lol[left_center_half_max_5_dst.index(min(left_center_half_max_5_dst))]
     left_center_half_max_3 = lol[left_center_half_max_3_dst.index(min(left_center_half_max_3_dst))]
+    left_center_half_max_7 = lol[left_center_half_max_7_dst.index(min(left_center_half_max_7_dst))]
     bottom_left = lol[bottom_left_dst.index(min(bottom_left_dst))]
+    bottom_center_half_min_4 = lol[bottom_center_half_min_4_dst.index(min(bottom_center_half_min_4_dst))]
     bottom_center_half_min_2 = lol[bottom_center_half_min_2_dst.index(min(bottom_center_half_min_2_dst))]
+    bottom_center_half_min_6 = lol[bottom_center_half_min_6_dst.index(min(bottom_center_half_min_6_dst))]
     bottom_center_half_min_1 = lol[bottom_center_half_min_1_dst.index(min(bottom_center_half_min_1_dst))]
+    bottom_center_half_min_5 = lol[bottom_center_half_min_5_dst.index(min(bottom_center_half_min_5_dst))]
     bottom_center_half_min_3 = lol[bottom_center_half_min_3_dst.index(min(bottom_center_half_min_3_dst))]
+    bottom_center_half_min_7 = lol[bottom_center_half_min_7_dst.index(min(bottom_center_half_min_7_dst))]
     bottom_center = lol[bottom_center_dst.index(min(bottom_center_dst))]
+    bottom_center_half_max_4 = lol[bottom_center_half_max_4_dst.index(min(bottom_center_half_max_4_dst))]
     bottom_center_half_max_2 = lol[bottom_center_half_max_2_dst.index(min(bottom_center_half_max_2_dst))]
+    bottom_center_half_max_6 = lol[bottom_center_half_max_6_dst.index(min(bottom_center_half_max_6_dst))]
     bottom_center_half_max_1 = lol[bottom_center_half_max_1_dst.index(min(bottom_center_half_max_1_dst))]
+    bottom_center_half_max_5 = lol[bottom_center_half_max_5_dst.index(min(bottom_center_half_max_5_dst))]
     bottom_center_half_max_3 = lol[bottom_center_half_max_3_dst.index(min(bottom_center_half_max_3_dst))]
+    bottom_center_half_max_7 = lol[bottom_center_half_max_7_dst.index(min(bottom_center_half_max_7_dst))]
     bottom_right = lol[bottom_right_dst.index(min(bottom_right_dst))]
+    right_center_half_max_4 = lol[right_center_half_max_4_dst.index(min(right_center_half_max_4_dst))]
     right_center_half_max_2 = lol[right_center_half_max_2_dst.index(min(right_center_half_max_2_dst))]
+    right_center_half_max_6 = lol[right_center_half_max_6_dst.index(min(right_center_half_max_6_dst))]
     right_center_half_max_1 = lol[right_center_half_max_1_dst.index(min(right_center_half_max_1_dst))]
+    right_center_half_max_5 = lol[right_center_half_max_5_dst.index(min(right_center_half_max_5_dst))]
     right_center_half_max_3 = lol[right_center_half_max_3_dst.index(min(right_center_half_max_3_dst))]
+    right_center_half_max_7 = lol[right_center_half_max_7_dst.index(min(right_center_half_max_7_dst))]
     right_center = lol[right_center_dst.index(min(right_center_dst))]
+    right_center_half_min_4 = lol[right_center_half_min_4_dst.index(min(right_center_half_min_4_dst))]
     right_center_half_min_2 = lol[right_center_half_min_2_dst.index(min(right_center_half_min_2_dst))]
+    right_center_half_min_6 = lol[right_center_half_min_6_dst.index(min(right_center_half_min_6_dst))]
     right_center_half_min_1 = lol[right_center_half_min_1_dst.index(min(right_center_half_min_1_dst))]
+    right_center_half_min_5 = lol[right_center_half_min_5_dst.index(min(right_center_half_min_5_dst))]
     right_center_half_min_3 = lol[right_center_half_min_3_dst.index(min(right_center_half_min_3_dst))]
+    right_center_half_min_7 = lol[right_center_half_min_7_dst.index(min(right_center_half_min_7_dst))]
     top_right = lol[top_right_dst.index(min(top_right_dst))]
+    top_center_half_max_4 = lol[top_center_half_max_4_dst.index(min(top_center_half_max_4_dst))]
     top_center_half_max_2 = lol[top_center_half_max_2_dst.index(min(top_center_half_max_2_dst))]
+    top_center_half_max_6 = lol[top_center_half_max_6_dst.index(min(top_center_half_max_6_dst))]
     top_center_half_max_1 = lol[top_center_half_max_1_dst.index(min(top_center_half_max_1_dst))]
+    top_center_half_max_5 = lol[top_center_half_max_5_dst.index(min(top_center_half_max_5_dst))]
     top_center_half_max_3 = lol[top_center_half_max_3_dst.index(min(top_center_half_max_3_dst))]
+    top_center_half_max_7 = lol[top_center_half_max_7_dst.index(min(top_center_half_max_7_dst))]
     top_center = lol[top_center_dst.index(min(top_center_dst))]
+    top_center_half_min_4 = lol[top_center_half_min_4_dst.index(min(top_center_half_min_4_dst))]
     top_center_half_min_2 = lol[top_center_half_min_2_dst.index(min(top_center_half_min_2_dst))]
+    top_center_half_min_6 = lol[top_center_half_min_6_dst.index(min(top_center_half_min_6_dst))]
     top_center_half_min_1 = lol[top_center_half_min_1_dst.index(min(top_center_half_min_1_dst))]
+    top_center_half_min_5 = lol[top_center_half_min_5_dst.index(min(top_center_half_min_5_dst))]
     top_center_half_min_3 = lol[top_center_half_min_3_dst.index(min(top_center_half_min_3_dst))]
+    top_center_half_min_7 = lol[top_center_half_min_7_dst.index(min(top_center_half_min_7_dst))]
     return np.array(
         [
             top_left,
+            left_center_half_min_4,
             left_center_half_min_2,
+            left_center_half_min_6,
             left_center_half_min_1,
+            left_center_half_min_5,
             left_center_half_min_3,
+            left_center_half_min_7,
             left_center,
+            left_center_half_max_4,
             left_center_half_max_2,
+            left_center_half_max_6,
             left_center_half_max_1,
+            left_center_half_max_5,
             left_center_half_max_3,
+            left_center_half_max_7,
             bottom_left,
+            bottom_center_half_min_4,
             bottom_center_half_min_2,
+            bottom_center_half_min_6,
             bottom_center_half_min_1,
+            bottom_center_half_min_5,
             bottom_center_half_min_3,
+            bottom_center_half_min_7,
             bottom_center,
+            bottom_center_half_max_4,
             bottom_center_half_max_2,
+            bottom_center_half_max_6,
             bottom_center_half_max_1,
+            bottom_center_half_max_5,
             bottom_center_half_max_3,
+            bottom_center_half_max_7,
             bottom_right,
+            right_center_half_max_4,
             right_center_half_max_2,
+            right_center_half_max_6,
             right_center_half_max_1,
+            right_center_half_max_5,
             right_center_half_max_3,
+            right_center_half_max_7,
             right_center,
+            right_center_half_min_4,
             right_center_half_min_2,
+            right_center_half_min_6,
             right_center_half_min_1,
+            right_center_half_min_5,
             right_center_half_min_3,
+            right_center_half_min_7,
             top_right,
+            top_center_half_max_4,
             top_center_half_max_2,
+            top_center_half_max_6,
             top_center_half_max_1,
+            top_center_half_max_5,
             top_center_half_max_3,
+            top_center_half_max_7,
             top_center,
+            top_center_half_min_4,
             top_center_half_min_2,
+            top_center_half_min_6,
             top_center_half_min_1,
+            top_center_half_min_5,
             top_center_half_min_3,
+            top_center_half_min_7,
             top_left,
         ]
     )

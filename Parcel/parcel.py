@@ -27,21 +27,21 @@ df = pd.read_csv("dataset.csv")
 
 df = df.head(100)
 df["coords_vals"] = df["coords_vals"].apply(eval)
-# df = df[(df["after_cleanup_len"] <= n_coords)]
 df["sorted_coords"] = df["coords_vals"].apply(sort_coords)
-# df["edges"] = df["sorted_coords"].apply(four_corners)
 df["interpolate"] = df["sorted_coords"].apply(interpolate)
+# df["edges"] = df["sorted_coords"].apply(four_corners)
 df["edges"] = df["interpolate"].apply(sixtyfour_corners)
+df["edges"] = df["edges"].apply(flatten)
+df["bbox"] = df["sorted_coords"].apply(bbox)
+df["center"] = df["sorted_coords"].apply(center)
 print(len(df["edges"][0]))
 print((df["edges"][0]))
-df["edges"] = df["edges"].apply(flatten)
 print(len(df["edges"][0]))
 # df["poly_area"] = df["interpolate"].apply(find_area)
 # df["interpolate"] = df["interpolate"].apply(flatten)
 # df["poly_area_percent"] = (df["poly_area"] / (256 * 256)) * 100
 # df = df[(df["poly_area_percent"] <= 30)]
-df["bbox"] = df["sorted_coords"].apply(bbox)
-df["center"] = df["sorted_coords"].apply(center)
+
 df["new"] = df.apply(lambda x: np.concatenate((x["bbox"], x["center"], x["edges"])), axis=1)
 files = os.listdir("test_parcel/train")
 try:
