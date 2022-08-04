@@ -63,9 +63,8 @@ for i in df.index:
 df.drop(missing, inplace=True)
 df["images"] = images
 print("No error until now")
-print(len(df))
+
 X = df["images"].to_list()
-print(X[0].shape)
 X = np.array(X)
 y = np.array(df["new"].to_list())
 # y = np.array(df["bbox"].to_list())
@@ -91,6 +90,7 @@ model = Sequential(
         Dense(((2 * n_coords) + 6 + 2), activation="relu"),
     ]
 )
+
 
 optimizer = tf.keras.optimizers.Adam(learning_rate=0.001, decay=0.0007)
 loss = tf.keras.losses.MeanSquaredError()
