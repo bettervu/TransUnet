@@ -15,7 +15,7 @@ from dTurk.models.SM_UNet import SM_UNet_Builder
 FS = gcsfs.GCSFileSystem()
 try:
     gpus = tf.config.list_physical_devices("GPU")
-    tf.config.set_visible_devices(gpus[2], "GPU")
+    tf.config.set_visible_devices(gpus[1], "GPU")
 except:
     print("Gpus not found")
 
@@ -76,11 +76,11 @@ val_labels = tf.data.Dataset.from_tensor_slices(y_val)
 
 train = tf.data.Dataset.zip((train_images, train_labels))
 train = train.shuffle(5000)
-train = train.batch(12)
+train = train.batch(8)
 train = train.prefetch(4)
 val = tf.data.Dataset.zip((val_images, val_labels))
 val = val.shuffle(1000)
-val = val.batch(12)
+val = val.batch(8)
 val = val.prefetch(4)
 
 print("No error until now")
