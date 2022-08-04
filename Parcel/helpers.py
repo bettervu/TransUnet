@@ -15,7 +15,7 @@ def extend_list(lol):
     return lol
 
 
-def interpolate(lol, n=2406, t="linear"):
+def interpolate(lol, n=1203, t="linear"):
     if len(lol) == n:
         return lol
     elif len(lol) < n:
@@ -477,3 +477,19 @@ def sixtyfour_corners(lol):
             top_left,
         ]
     )
+
+
+# df["coords_vals"] = df["coords_vals"].apply(eval)
+# df["sorted_coords"] = df["coords_vals"].apply(sort_coords)
+# df["interpolate"] = df["sorted_coords"].apply(interpolate)
+# # df["edges"] = df["sorted_coords"].apply(four_corners)
+# df["edges"] = df["interpolate"].apply(sixtyfour_corners)
+# df["edges"] = df["edges"].apply(flatten)
+# df["bbox"] = df["sorted_coords"].apply(bbox)
+# df["center"] = df["sorted_coords"].apply(center)
+# # df["poly_area"] = df["interpolate"].apply(find_area)
+# # df["interpolate"] = df["interpolate"].apply(flatten)
+# # df["poly_area_percent"] = (df["poly_area"] / (256 * 256)) * 100
+# # df = df[(df["poly_area_percent"] <= 30)]
+#
+# df["new"] = df.apply(lambda x: np.concatenate((x["bbox"], x["center"], x["edges"])), axis=1)
