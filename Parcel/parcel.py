@@ -9,7 +9,7 @@ from tensorflow.keras import Sequential
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.layers import Conv2D, Dense, Dropout, Flatten, Input, Permute, Reshape
 
-from helpers import interpolate, flatten, bbox, center, find_area, sort_coords, four_corners, eight_corners, sixteen_corners, thirtytwo_corners, sixtyfour_corners
+from helpers import interpolate, flatten, bbox, center, find_area, sort_coords, sixtyfour_corners
 from dTurk.models.SM_UNet import SM_UNet_Builder
 
 FS = gcsfs.GCSFileSystem()
@@ -25,7 +25,7 @@ n_coords = 64
 
 df = pd.read_csv("dataset.csv")
 
-# df = df.head(1000)
+df = df.head(100)
 df["coords_vals"] = df["coords_vals"].apply(eval)
 # df = df[(df["after_cleanup_len"] <= n_coords)]
 df["sorted_coords"] = df["coords_vals"].apply(sort_coords)
