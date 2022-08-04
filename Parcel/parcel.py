@@ -9,7 +9,7 @@ from tensorflow.keras import Sequential
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.layers import Conv2D, Dense, Dropout, Flatten, Input, Permute, Reshape
 
-from helpers import interpolate, flatten, bbox, center, find_area, four_corners, sort_coords
+from helpers import interpolate, flatten, bbox, center, find_area, sort_coords, four_corners, eight_corners, sixteen_corners, thirtytwo_corners, sixtyfour_corners
 from dTurk.models.SM_UNet import SM_UNet_Builder
 
 FS = gcsfs.GCSFileSystem()
@@ -20,7 +20,7 @@ except:
     print("Gpus not found")
 
 
-n_coords = 32
+n_coords = 64
 
 
 df = pd.read_csv("dataset.csv")
@@ -30,7 +30,7 @@ df["coords_vals"] = df["coords_vals"].apply(eval)
 df["sorted_coords"] = df["coords_vals"].apply(sort_coords)
 # df["edges"] = df["sorted_coords"].apply(four_corners)
 df["interpolate"] = df["sorted_coords"].apply(interpolate)
-df["edges"] = df["interpolate"].apply(four_corners)
+df["edges"] = df["interpolate"].apply(sixtyfour_corners)
 df["edges"] = df["edges"].apply(flatten)
 df["poly_area"] = df["interpolate"].apply(find_area)
 df["interpolate"] = df["interpolate"].apply(flatten)
