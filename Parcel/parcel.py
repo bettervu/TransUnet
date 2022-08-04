@@ -25,7 +25,6 @@ n_coords = 64
 
 df = pd.read_csv("dataset.csv")
 
-df = df.head(64)
 df["coords_vals"] = df["coords_vals"].apply(eval)
 df["sorted_coords"] = df["coords_vals"].apply(sort_coords)
 df["interpolate"] = df["sorted_coords"].apply(interpolate)
@@ -91,7 +90,6 @@ model = Sequential(
     ]
 )
 
-print(X.shape, y.shape)
 
 optimizer = tf.keras.optimizers.Adam(learning_rate=0.001, decay=0.0007)
 loss = tf.keras.losses.MeanSquaredError()
@@ -100,9 +98,9 @@ callbacks = []
 early_stopping = EarlyStopping(monitor="val_loss", mode="min", verbose=1, patience=20)
 callbacks.append(early_stopping)
 H = model.fit(
-    np.asarray(X[:-16]),
-    np.asarray(y[:-16]),
-    validation_data=(X[-16:], y[-16:]),
+    np.asarray(X[:-500]),
+    np.asarray(y[:-500]),
+    validation_data=(X[-500:], y[-500:]),
     batch_size=16,
     epochs=4,
     verbose=1,
