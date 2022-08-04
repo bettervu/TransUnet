@@ -25,7 +25,7 @@ n_coords = 64
 
 df = pd.read_csv("dataset.csv")
 
-df = df.head(1000)
+# df = df.head(1000)
 df["coords_vals"] = df["coords_vals"].apply(eval)
 # df = df[(df["after_cleanup_len"] <= n_coords)]
 df["sorted_coords"] = df["coords_vals"].apply(sort_coords)
