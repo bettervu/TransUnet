@@ -25,7 +25,7 @@ n_coords = 64
 
 df = pd.read_csv("dataset.csv")
 
-df = df.head(100)
+df = df.head(64)
 df["coords_vals"] = df["coords_vals"].apply(eval)
 df["sorted_coords"] = df["coords_vals"].apply(sort_coords)
 df["interpolate"] = df["sorted_coords"].apply(interpolate)
@@ -40,7 +40,7 @@ df["center"] = df["sorted_coords"].apply(center)
 # df = df[(df["poly_area_percent"] <= 30)]
 
 df["new"] = df.apply(lambda x: np.concatenate((x["bbox"], x["center"], x["edges"])), axis=1)
-print(len(df["new"][0]))
+
 files = os.listdir("test_parcel/train")
 try:
     files.remove(".DS_Store")
@@ -63,7 +63,9 @@ for i in df.index:
 df.drop(missing, inplace=True)
 df["images"] = images
 print("No error until now")
+print(len(df))
 X = df["images"].to_list()
+print(X[0].shape)
 X = np.array(X)
 y = np.array(df["new"].to_list())
 # y = np.array(df["bbox"].to_list())
