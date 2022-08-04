@@ -36,9 +36,9 @@ print(len(df["edges"][0]))
 print((df["edges"][0]))
 df["edges"] = df["edges"].apply(flatten)
 print(len(df["edges"][0]))
-df["poly_area"] = df["interpolate"].apply(find_area)
-df["interpolate"] = df["interpolate"].apply(flatten)
-df["poly_area_percent"] = (df["poly_area"] / (256 * 256)) * 100
+# df["poly_area"] = df["interpolate"].apply(find_area)
+# df["interpolate"] = df["interpolate"].apply(flatten)
+# df["poly_area_percent"] = (df["poly_area"] / (256 * 256)) * 100
 # df = df[(df["poly_area_percent"] <= 30)]
 df["bbox"] = df["sorted_coords"].apply(bbox)
 df["center"] = df["sorted_coords"].apply(center)
