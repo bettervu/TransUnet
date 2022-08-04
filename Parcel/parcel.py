@@ -40,6 +40,7 @@ df["center"] = df["sorted_coords"].apply(center)
 # df = df[(df["poly_area_percent"] <= 30)]
 
 df["new"] = df.apply(lambda x: np.concatenate((x["bbox"], x["center"], x["edges"])), axis=1)
+print(len(df["new"][0]))
 files = os.listdir("test_parcel/train")
 try:
     files.remove(".DS_Store")
