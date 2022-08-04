@@ -44,8 +44,7 @@ df = pd.read_csv("dataset.csv")
 
 df["new"] = df["new"].apply(eval)
 
-
-
+    
 files = os.listdir("test_parcel/train")
 try:
     files.remove(".DS_Store")
@@ -59,7 +58,9 @@ train_df = df.sample(frac=0.9)
 val_df = df.drop(train_df.index)
 
 
-train_images = tf.data.Dataset.from_tensor_slices([f"test_parcel/train/{train_df['gtu_ids'][i]}.png" for i in train_df.index])
+train_images = tf.data.Dataset.from_tensor_slices(
+    [f"test_parcel/train/{train_df['gtu_ids'][i]}.png" for i in train_df.index]
+)
 train_images = train_images.map(load_image)
 train_images = train_images.map(lambda x: tf.ensure_shape(x, [256, 256, 3]))
 val_images = tf.data.Dataset.from_tensor_slices([f"test_parcel/train/{val_df['gtu_ids'][i]}.png" for i in val_df.index])
