@@ -42,9 +42,11 @@ df = pd.read_csv("dataset.csv")
 # df["new"] = df["new"].apply(lambda x:list(x))
 # df.to_csv("dataset.csv")
 
+print(df.columns)
+
 df["new"] = df["new"].apply(eval)
 
-    
+
 files = os.listdir("test_parcel/train")
 try:
     files.remove(".DS_Store")
