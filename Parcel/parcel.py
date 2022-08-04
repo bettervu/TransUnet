@@ -91,6 +91,7 @@ model = Sequential(
     ]
 )
 
+print(((2 * n_coords) + 8), len(df["new"][0]))
 
 optimizer = tf.keras.optimizers.Adam(learning_rate=0.001, decay=0.0007)
 loss = tf.keras.losses.MeanSquaredError()
