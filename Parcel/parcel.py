@@ -9,7 +9,20 @@ from tensorflow.keras import Sequential
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.layers import Conv2D, Dense, Dropout, Flatten, Input, Permute, Reshape
 
-from helpers import interpolate, flatten, bbox, center, find_area, sort_coords, load_image, four_corners, eight_corners, sixteen_corners, thirtytwo_corners, sixtyfour_corners
+from helpers import (
+    interpolate,
+    flatten,
+    bbox,
+    center,
+    find_area,
+    sort_coords,
+    load_image,
+    four_corners,
+    eight_corners,
+    sixteen_corners,
+    thirtytwo_corners,
+    sixtyfour_corners,
+)
 from dTurk.models.SM_UNet import SM_UNet_Builder
 
 FS = gcsfs.GCSFileSystem()
@@ -93,8 +106,8 @@ val_images = tf.data.Dataset.from_tensor_slices([f"test_parcel/train/{val_df['gt
 val_images = val_images.map(load_image)
 val_images = val_images.map(lambda x: tf.ensure_shape(x, [256, 256, 3]))
 
-y_train = np.array(train_df["new"].to_list())
-y_val = np.array(val_df["new"].to_list())
+y_train = np.array(train_df["new32"].to_list())
+y_val = np.array(val_df["new32"].to_list())
 
 
 train_labels = tf.data.Dataset.from_tensor_slices(y_train)
