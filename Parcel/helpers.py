@@ -85,95 +85,95 @@ def sort_coords(coords):
     return final_coords
 
 
-# def four_corners(lol):
-#     top_left_dst = list(map(lambda x: distance(x, [0, 0]), lol))
-#     bottom_left_dst = list(map(lambda x: distance(x, [0, 256]), lol))
-#     bottom_right_dst = list(map(lambda x: distance(x, [256, 256]), lol))
-#     top_right_dst = list(map(lambda x: distance(x, [256, 0]), lol))
-#     top_left = lol[top_left_dst.index(min(top_left_dst))]
-#     bottom_left = lol[bottom_left_dst.index(min(bottom_left_dst))]
-#     bottom_right = lol[bottom_right_dst.index(min(bottom_right_dst))]
-#     top_right = lol[top_right_dst.index(min(top_right_dst))]
-#     return np.array([top_left, bottom_left, bottom_right, top_right, top_left])
-#
-#
-# def eight_corners(lol):
-#     top_left_dst = list(map(lambda x: distance(x, [0, 0]), lol))
-#     left_center_dst = list(map(lambda x: distance(x, [0, 128]), lol))
-#     bottom_left_dst = list(map(lambda x: distance(x, [0, 256]), lol))
-#     bottom_center_dst = list(map(lambda x: distance(x, [128, 256]), lol))
-#     bottom_right_dst = list(map(lambda x: distance(x, [256, 256]), lol))
-#     right_center_dst = list(map(lambda x: distance(x, [256, 128]), lol))
-#     top_right_dst = list(map(lambda x: distance(x, [256, 0]), lol))
-#     top_center_dst = list(map(lambda x: distance(x, [128, 0]), lol))
-#     top_left = lol[top_left_dst.index(min(top_left_dst))]
-#     left_center = lol[left_center_dst.index(min(left_center_dst))]
-#     bottom_left = lol[bottom_left_dst.index(min(bottom_left_dst))]
-#     bottom_center = lol[bottom_center_dst.index(min(bottom_center_dst))]
-#     bottom_right = lol[bottom_right_dst.index(min(bottom_right_dst))]
-#     right_center = lol[right_center_dst.index(min(right_center_dst))]
-#     top_right = lol[top_right_dst.index(min(top_right_dst))]
-#     top_center = lol[top_center_dst.index(min(top_center_dst))]
-#     return np.array(
-#         [top_left, left_center, bottom_left, bottom_center, bottom_right, right_center, top_right, top_center, top_left]
-#     )
-#
-#
-# def sixteen_corners(lol):
-#     top_left_dst = list(map(lambda x: distance(x, [0, 0]), lol))
-#     left_center_half_min_1_dst = list(map(lambda x: distance(x, [0, 64]), lol))
-#     left_center_dst = list(map(lambda x: distance(x, [0, 128]), lol))
-#     left_center_half_max_1_dst = list(map(lambda x: distance(x, [0, 192]), lol))
-#     bottom_left_dst = list(map(lambda x: distance(x, [0, 256]), lol))
-#     bottom_center_half_min_1_dst = list(map(lambda x: distance(x, [64, 256]), lol))
-#     bottom_center_dst = list(map(lambda x: distance(x, [128, 256]), lol))
-#     bottom_center_half_max_1_dst = list(map(lambda x: distance(x, [192, 256]), lol))
-#     bottom_right_dst = list(map(lambda x: distance(x, [256, 256]), lol))
-#     right_center_half_max_1_dst = list(map(lambda x: distance(x, [256, 192]), lol))
-#     right_center_dst = list(map(lambda x: distance(x, [256, 128]), lol))
-#     right_center_half_min_1_dst = list(map(lambda x: distance(x, [256, 64]), lol))
-#     top_right_dst = list(map(lambda x: distance(x, [256, 0]), lol))
-#     top_center_half_max_1_dst = list(map(lambda x: distance(x, [192, 0]), lol))
-#     top_center_dst = list(map(lambda x: distance(x, [128, 0]), lol))
-#     top_center_half_min_1_dst = list(map(lambda x: distance(x, [64, 0]), lol))
-#     top_left = lol[top_left_dst.index(min(top_left_dst))]
-#     left_center_half_min_1 = lol[left_center_half_min_1_dst.index(min(left_center_half_min_1_dst))]
-#     left_center = lol[left_center_dst.index(min(left_center_dst))]
-#     left_center_half_max_1 = lol[left_center_half_max_1_dst.index(min(left_center_half_max_1_dst))]
-#     bottom_left = lol[bottom_left_dst.index(min(bottom_left_dst))]
-#     bottom_center_half_min_1 = lol[bottom_center_half_min_1_dst.index(min(bottom_center_half_min_1_dst))]
-#     bottom_center = lol[bottom_center_dst.index(min(bottom_center_dst))]
-#     bottom_center_half_max_1 = lol[bottom_center_half_max_1_dst.index(min(bottom_center_half_max_1_dst))]
-#     bottom_right = lol[bottom_right_dst.index(min(bottom_right_dst))]
-#     right_center_half_max = lol[right_center_half_max_1_dst.index(min(right_center_half_max_1_dst))]
-#     right_center = lol[right_center_dst.index(min(right_center_dst))]
-#     right_center_half_min = lol[right_center_half_min_1_dst.index(min(right_center_half_min_1_dst))]
-#     top_right = lol[top_right_dst.index(min(top_right_dst))]
-#     top_center_half_max = lol[top_center_half_max_1_dst.index(min(top_center_half_max_1_dst))]
-#     top_center = lol[top_center_dst.index(min(top_center_dst))]
-#     top_center_half_min = lol[top_center_half_min_1_dst.index(min(top_center_half_min_1_dst))]
-#     return np.array(
-#         [
-#             top_left,
-#             left_center_half_min_1,
-#             left_center,
-#             left_center_half_max_1,
-#             bottom_left,
-#             bottom_center_half_min_1,
-#             bottom_center,
-#             bottom_center_half_max_1,
-#             bottom_right,
-#             right_center_half_max,
-#             right_center,
-#             right_center_half_min,
-#             top_right,
-#             top_center_half_max,
-#             top_center,
-#             top_center_half_min,
-#             top_left,
-#         ]
-#     )
-#
+def four_corners(lol):
+    top_left_dst = list(map(lambda x: distance(x, [0, 0]), lol))
+    bottom_left_dst = list(map(lambda x: distance(x, [0, 256]), lol))
+    bottom_right_dst = list(map(lambda x: distance(x, [256, 256]), lol))
+    top_right_dst = list(map(lambda x: distance(x, [256, 0]), lol))
+    top_left = lol[top_left_dst.index(min(top_left_dst))]
+    bottom_left = lol[bottom_left_dst.index(min(bottom_left_dst))]
+    bottom_right = lol[bottom_right_dst.index(min(bottom_right_dst))]
+    top_right = lol[top_right_dst.index(min(top_right_dst))]
+    return np.array([top_left, bottom_left, bottom_right, top_right, top_left])
+
+
+def eight_corners(lol):
+    top_left_dst = list(map(lambda x: distance(x, [0, 0]), lol))
+    left_center_dst = list(map(lambda x: distance(x, [0, 128]), lol))
+    bottom_left_dst = list(map(lambda x: distance(x, [0, 256]), lol))
+    bottom_center_dst = list(map(lambda x: distance(x, [128, 256]), lol))
+    bottom_right_dst = list(map(lambda x: distance(x, [256, 256]), lol))
+    right_center_dst = list(map(lambda x: distance(x, [256, 128]), lol))
+    top_right_dst = list(map(lambda x: distance(x, [256, 0]), lol))
+    top_center_dst = list(map(lambda x: distance(x, [128, 0]), lol))
+    top_left = lol[top_left_dst.index(min(top_left_dst))]
+    left_center = lol[left_center_dst.index(min(left_center_dst))]
+    bottom_left = lol[bottom_left_dst.index(min(bottom_left_dst))]
+    bottom_center = lol[bottom_center_dst.index(min(bottom_center_dst))]
+    bottom_right = lol[bottom_right_dst.index(min(bottom_right_dst))]
+    right_center = lol[right_center_dst.index(min(right_center_dst))]
+    top_right = lol[top_right_dst.index(min(top_right_dst))]
+    top_center = lol[top_center_dst.index(min(top_center_dst))]
+    return np.array(
+        [top_left, left_center, bottom_left, bottom_center, bottom_right, right_center, top_right, top_center, top_left]
+    )
+
+
+def sixteen_corners(lol):
+    top_left_dst = list(map(lambda x: distance(x, [0, 0]), lol))
+    left_center_half_min_1_dst = list(map(lambda x: distance(x, [0, 64]), lol))
+    left_center_dst = list(map(lambda x: distance(x, [0, 128]), lol))
+    left_center_half_max_1_dst = list(map(lambda x: distance(x, [0, 192]), lol))
+    bottom_left_dst = list(map(lambda x: distance(x, [0, 256]), lol))
+    bottom_center_half_min_1_dst = list(map(lambda x: distance(x, [64, 256]), lol))
+    bottom_center_dst = list(map(lambda x: distance(x, [128, 256]), lol))
+    bottom_center_half_max_1_dst = list(map(lambda x: distance(x, [192, 256]), lol))
+    bottom_right_dst = list(map(lambda x: distance(x, [256, 256]), lol))
+    right_center_half_max_1_dst = list(map(lambda x: distance(x, [256, 192]), lol))
+    right_center_dst = list(map(lambda x: distance(x, [256, 128]), lol))
+    right_center_half_min_1_dst = list(map(lambda x: distance(x, [256, 64]), lol))
+    top_right_dst = list(map(lambda x: distance(x, [256, 0]), lol))
+    top_center_half_max_1_dst = list(map(lambda x: distance(x, [192, 0]), lol))
+    top_center_dst = list(map(lambda x: distance(x, [128, 0]), lol))
+    top_center_half_min_1_dst = list(map(lambda x: distance(x, [64, 0]), lol))
+    top_left = lol[top_left_dst.index(min(top_left_dst))]
+    left_center_half_min_1 = lol[left_center_half_min_1_dst.index(min(left_center_half_min_1_dst))]
+    left_center = lol[left_center_dst.index(min(left_center_dst))]
+    left_center_half_max_1 = lol[left_center_half_max_1_dst.index(min(left_center_half_max_1_dst))]
+    bottom_left = lol[bottom_left_dst.index(min(bottom_left_dst))]
+    bottom_center_half_min_1 = lol[bottom_center_half_min_1_dst.index(min(bottom_center_half_min_1_dst))]
+    bottom_center = lol[bottom_center_dst.index(min(bottom_center_dst))]
+    bottom_center_half_max_1 = lol[bottom_center_half_max_1_dst.index(min(bottom_center_half_max_1_dst))]
+    bottom_right = lol[bottom_right_dst.index(min(bottom_right_dst))]
+    right_center_half_max = lol[right_center_half_max_1_dst.index(min(right_center_half_max_1_dst))]
+    right_center = lol[right_center_dst.index(min(right_center_dst))]
+    right_center_half_min = lol[right_center_half_min_1_dst.index(min(right_center_half_min_1_dst))]
+    top_right = lol[top_right_dst.index(min(top_right_dst))]
+    top_center_half_max = lol[top_center_half_max_1_dst.index(min(top_center_half_max_1_dst))]
+    top_center = lol[top_center_dst.index(min(top_center_dst))]
+    top_center_half_min = lol[top_center_half_min_1_dst.index(min(top_center_half_min_1_dst))]
+    return np.array(
+        [
+            top_left,
+            left_center_half_min_1,
+            left_center,
+            left_center_half_max_1,
+            bottom_left,
+            bottom_center_half_min_1,
+            bottom_center,
+            bottom_center_half_max_1,
+            bottom_right,
+            right_center_half_max,
+            right_center,
+            right_center_half_min,
+            top_right,
+            top_center_half_max,
+            top_center,
+            top_center_half_min,
+            top_left,
+        ]
+    )
+
 
 
 def thirtytwo_corners(lol):
