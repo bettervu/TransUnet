@@ -6,7 +6,6 @@ import tensorflow as tf
 from dTurk.models.SM_UNet import SM_UNet_Builder
 from tensorflow.keras.callbacks import EarlyStopping
 from helpers import load_image
-from focal_loss import BinaryFocalLoss
 
 from dTurk.models.sm_models.losses import DiceLoss
 from dTurk.metrics import WeightedMeanIoU
@@ -102,7 +101,7 @@ callbacks.append(early_stopping)
 
 
 history = model.fit(
-    train, epochs=10, validation_data=val, callbacks=callbacks
+    train, epochs=1, validation_data=val, callbacks=callbacks
 )
 
 iou = history.history["wt_mean_iou"]
