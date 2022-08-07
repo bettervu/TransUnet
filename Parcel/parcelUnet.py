@@ -101,7 +101,7 @@ callbacks.append(early_stopping)
 
 
 history = model.fit(
-    train, epochs=1, validation_data=val, callbacks=callbacks
+    train, epochs=2, validation_data=val, callbacks=callbacks
 )
 
 iou = history.history["wt_mean_iou"]
