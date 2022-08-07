@@ -5,7 +5,7 @@ import pandas as pd
 import tensorflow as tf
 from dTurk.models.SM_UNet import SM_UNet_Builder
 from tensorflow.keras.callbacks import EarlyStopping
-from helpers import load_image, mean_iou, segmentation_loss
+from helpers import load_image
 from focal_loss import BinaryFocalLoss
 
 from dTurk.models.sm_models.losses import DiceLoss
@@ -88,33 +88,13 @@ builder = SM_UNet_Builder(
     dropout=0,
 )
 
-def dice_per_class(y_true, y_pred, eps=1e-5):
-    intersect = tf.reduce_sum(y_true * y_pred)
-    y_sum = tf.reduce_sum(y_true * y_true)
-    z_sum = tf.reduce_sum(y_pred * y_pred)
-    loss = 1 - (2 * intersect + eps) / (z_sum + y_sum + eps)
-    return loss
-
-def gen_dice(y_true, y_pred):
-    pred_tensor = tf.nn.softmax(y_pred)
-    loss = 0.0
-    for c in range(3):
-        loss += dice_per_class(y_true[:, :, :, c], pred_tensor[:, :, :, c])
-    return loss / 3
-
-def segmentation_loss(y_true, y_pred):
-    cce = tf.keras.losses.CategoricalCrossentropy(from_logits=True)
-    cross_entropy_loss = cce(y_true=y_true, y_pred=y_pred)
-    dice_loss = gen_dice(y_true, y_pred)
-    return 0.5 * cross_entropy_loss + 0.5 * dice_loss
-
-loss = DiceLoss(class_weights=[1,1,1], class_indexes=[0,1,2], per_image=False)
+l = DiceLoss(class_weights=[1,1,1], class_indexes=[0,1,2], per_image=False)
 metric = WeightedMeanIoU(
             num_classes=3, class_weights=[1,1,1], name="wt_mean_iou"
         )
 
 model = builder.build_model()
-model.compile(optimizer='adam', loss=BinaryFocalLoss(gamma=2), metrics=metric)
+model.compile(optimizer='adam', loss=l, metrics=metric)
 
 callbacks = []
 early_stopping = EarlyStopping(monitor="val_loss", mode="min", verbose=1, patience=20)
