@@ -94,7 +94,7 @@ metric = WeightedMeanIoU(
         )
 
 model = builder.build_model()
-model.compile(optimizer='adam', loss=BinaryFocalLoss(gamma=2), metrics=metric)
+model.compile(optimizer='adam', loss=l, metrics=metric)
 
 callbacks = []
 early_stopping = EarlyStopping(monitor="val_loss", mode="min", verbose=1, patience=5)
