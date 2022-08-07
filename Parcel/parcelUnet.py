@@ -1,12 +1,13 @@
 import os
 import tarfile
-import cv2
 import gcsfs
 import pandas as pd
 import tensorflow as tf
 from tensorflow.keras.callbacks import EarlyStopping
 from helpers import load_image
 from dTurk.models.SM_UNet import SM_UNet_Builder
+from train_helpers import mean_iou
+from train_Unet import segmentation_loss
 
 FS = gcsfs.GCSFileSystem()
 try:
@@ -72,6 +73,7 @@ val = val.prefetch(4)
 
 print("No error until now")
 
+
 builder = SM_UNet_Builder(
     encoder_name="efficientnetv2-l",
     input_shape=(256, 256, 3),
@@ -86,25 +88,36 @@ builder = SM_UNet_Builder(
 
 model = builder.build_model()
 
-optimizer = tf.keras.optimizers.Adam(learning_rate=0.001, decay=0.0007)
-loss = tf.keras.losses.MeanSquaredError()
-model.compile(optimizer, loss)
+model.compile(optimizer="adam", loss=segmentation_loss, metrics=mean_iou)
+
 callbacks = []
+
 early_stopping = EarlyStopping(monitor="val_loss", mode="min", verbose=1, patience=20)
 callbacks.append(early_stopping)
+
 H = model.fit(
     train,
     validation_data=(val),
-    epochs=10,
+    epochs=1,
     verbose=1,
     callbacks=callbacks,
 )
+
+iou = H.history["mean_iou"]
+val_iou = H.history["val_mean_iou"]
 loss = H.history["loss"]
 val_loss = H.history["val_loss"]
-df = pd.DataFrame(loss)
+
+df = pd.DataFrame(iou)
+
+df.columns = ["mean_iou"]
+df["val_mean_iou"] = val_iou
 df["loss"] = loss
 df["val_loss"] = val_loss
+
 df.to_csv("parcel_Unet.csv")
+
 model.save("my_model_Unet")
+
 with tarfile.open("my_model_Unet.tar.gz", "w:gz") as tar:
     tar.add("my_model_Unet", arcname=os.path.basename("my_model_Unet"))
