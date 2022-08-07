@@ -7,6 +7,9 @@ from dTurk.models.SM_UNet import SM_UNet_Builder
 from tensorflow.keras.callbacks import EarlyStopping
 from helpers import load_image, mean_iou, segmentation_loss
 
+from dTurk.models.sm_models.losses import DiceLoss
+from dTurk.metrics import WeightedMeanIoU
+
 FS = gcsfs.GCSFileSystem()
 try:
     gpus = tf.config.list_physical_devices("GPU")
@@ -84,27 +87,47 @@ builder = SM_UNet_Builder(
     dropout=0,
 )
 
-model = builder.build_model()
+def dice_per_class(y_true, y_pred, eps=1e-5):
+    intersect = tf.reduce_sum(y_true * y_pred)
+    y_sum = tf.reduce_sum(y_true * y_true)
+    z_sum = tf.reduce_sum(y_pred * y_pred)
+    loss = 1 - (2 * intersect + eps) / (z_sum + y_sum + eps)
+    return loss
 
-model.compile(optimizer="adam", loss=segmentation_loss, metrics=mean_iou)
+def gen_dice(y_true, y_pred):
+    pred_tensor = tf.nn.softmax(y_pred)
+    loss = 0.0
+    for c in range(3):
+        loss += dice_per_class(y_true[:, :, :, c], pred_tensor[:, :, :, c])
+    return loss / 3
+
+def segmentation_loss(y_true, y_pred):
+    cce = tf.keras.losses.CategoricalCrossentropy(from_logits=True)
+    cross_entropy_loss = cce(y_true=y_true, y_pred=y_pred)
+    dice_loss = gen_dice(y_true, y_pred)
+    return 0.5 * cross_entropy_loss + 0.5 * dice_loss
+
+loss = DiceLoss(class_weights=[1,1,1], class_indexes=[0,1,2], per_image=False)
+metric = WeightedMeanIoU(
+            num_classes=3, class_weights=[1,1,1], name="wt_mean_iou"
+        )
+
+model = builder.build_model()
+model.compile(optimizer='adam', loss=loss, metrics=metric)
 
 callbacks = []
-
 early_stopping = EarlyStopping(monitor="val_loss", mode="min", verbose=1, patience=20)
 callbacks.append(early_stopping)
 
-H = model.fit(
-    train,
-    validation_data=(val),
-    epochs=1,
-    verbose=1,
-    callbacks=callbacks,
+
+history = model.fit(
+    train, epochs=10, validation_data=val, callbacks=callbacks
 )
 
-iou = H.history["mean_iou"]
-val_iou = H.history["val_mean_iou"]
-loss = H.history["loss"]
-val_loss = H.history["val_loss"]
+iou = history.history["wt_mean_iou"]
+val_iou = history.history["val_wt_mean_iou"]
+loss = history.history["loss"]
+val_loss = history.history["val_loss"]
 
 df = pd.DataFrame(iou)
 
