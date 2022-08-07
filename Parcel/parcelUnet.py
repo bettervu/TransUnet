@@ -4,9 +4,8 @@ import gcsfs
 import pandas as pd
 import tensorflow as tf
 from tensorflow.keras.callbacks import EarlyStopping
-from helpers import load_image
+from helpers import load_image, mean_iou
 from dTurk.models.SM_UNet import SM_UNet_Builder
-from train_helpers import mean_iou
 from train_Unet import segmentation_loss
 
 FS = gcsfs.GCSFileSystem()
