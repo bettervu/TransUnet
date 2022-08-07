@@ -245,8 +245,9 @@ def get_property_info(
 
 import os
 
-os.makedirs("test_parcel/train", exist_ok=True)
+# os.makedirs("test_parcel/train", exist_ok=True)
 os.makedirs("test_parcel/train_labels", exist_ok=True)
+
 
 first = 1
 aggregate_missed = 0
@@ -300,14 +301,11 @@ while i <= save_limit:
                 labels = np.zeros_like(img2)
                 start_pad = cv2.findNonZero(img2[:, :, 0])[0]
                 end_pad = cv2.findNonZero(img2[:, :, 0])[-1]
-                labels[start_pad[0][1]:end_pad[0][1], start_pad[0][0]:end_pad[0][0], 2] = 255
+                labels[start_pad[0][1]:end_pad[0][1], start_pad[0][0]:end_pad[0][0],2] = 255
                 labels = cv2.fillPoly(labels, [np.int32(coords3)], color=(0, 255, 0))
-                cv2.imwrite(f"test_parcel/train/{gtu_id}.png", img2)
+                # cv2.imwrite(f"test_parcel/train/{gtu_id}.png", img2)
                 cv2.imwrite(f"test_parcel/train_labels/{gtu_id}.png", labels)
-                gtu_ids.append(gtu_id)
-                before_cleanup_len.append(len(coords1))
-                after_cleanup_len.append(len(coords2))
-                transformed_coords.append(coords3)
+
         except:
             aggregate_missed += 1
             current_missed += 1
@@ -317,21 +315,7 @@ while i <= save_limit:
     else:
         print(f"Total missed so far: {aggregate_missed}")
         print(f"Missed in this loop: {current_missed}")
-        df = pd.DataFrame()
 
-        df["gtu_ids"] = gtu_ids
-        df["before_cleanup_len"] = before_cleanup_len
-        df["after_cleanup_len"] = after_cleanup_len
-        df["transformed_coords"] = transformed_coords
-
-        df["coords_vals"] = df["transformed_coords"].apply(lambda x: [list(i) for i in x])
-
-        df["sorted_coords"] = df["coords_vals"].apply(sort_coords)
-        df["interpolate_linear"] = df["sorted_coords"].apply(lambda x: interpolate(x, t="linear"))
-        df["interpolate_linear"] = df["interpolate_linear"].apply(lambda x: [list(i) for i in x])
-
-        df.to_csv(f"dataset{first}.csv", index=None)
-        print(f"dataset {first} saved!")
 
         first += 1
         gtu_ids = []

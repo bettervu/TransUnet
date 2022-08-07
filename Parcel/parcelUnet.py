@@ -36,7 +36,7 @@ except:
 n_coords = 32
 
 
-df = pd.read_csv("dataset.csv")
+# df = pd.read_csv("dataset.csv")
 
 # df["coords_vals"] = df["coords_vals"].apply(eval)
 # df["sorted_coords"] = df["coords_vals"].apply(sort_coords)
@@ -81,43 +81,57 @@ df = pd.read_csv("dataset.csv")
 #
 # df.to_csv("dataset.csv")
 
-df["new32"] = df["new32"].apply(eval)
+# df["new32"] = df["new32"].apply(eval)
 
 
-files = os.listdir("test_parcel/train")
+files_x = os.listdir("test_parcel/train")
+files_y = os.listdir("test_parcel/train_labels")
+
 try:
-    files.remove(".DS_Store")
+    files_x.remove(".DS_Store")
+    files_y.remove(".DS_Store")
 except:
     print("No hidden file encountered")
-files = [int(file.split(".")[0]) for file in files]
-allowable_train_gtus = list(set(files).intersection(set(df["gtu_ids"])))
-df = df[df["gtu_ids"].isin(allowable_train_gtus)]
+files_x = [int(file.split(".")[0]) for file in files_x]
+files_y = [int(file.split(".")[0]) for file in files_y]
+
+allowable_files = list(set(files_x).intersection(set(files_y)))
+
+df = pd.DataFrame()
+df["gtu_ids"] = allowable_files
 
 train_df = df.sample(frac=0.8)
 val_df = df.drop(train_df.index)
 
 
-train_images = tf.data.Dataset.from_tensor_slices(
+train_x = tf.data.Dataset.from_tensor_slices(
     [f"test_parcel/train/{train_df['gtu_ids'][i]}.png" for i in train_df.index]
 )
-train_images = train_images.map(load_image)
-train_images = train_images.map(lambda x: tf.ensure_shape(x, [256, 256, 3]))
-val_images = tf.data.Dataset.from_tensor_slices([f"test_parcel/train/{val_df['gtu_ids'][i]}.png" for i in val_df.index])
-val_images = val_images.map(load_image)
-val_images = val_images.map(lambda x: tf.ensure_shape(x, [256, 256, 3]))
+train_y = tf.data.Dataset.from_tensor_slices(
+    [f"test_parcel/train_labels/{train_df['gtu_ids'][i]}.png" for i in train_df.index]
+)
 
-y_train = np.array(train_df["new32"].to_list())
-y_val = np.array(val_df["new32"].to_list())
+train_x = train_x.map(load_image)
+train_x = train_x.map(lambda x: tf.ensure_shape(x, [256, 256, 3]))
+
+train_y = train_y.map(load_image)
+train_y = train_y.map(lambda x: tf.ensure_shape(x, [256, 256, 3]))
+
+val_x = tf.data.Dataset.from_tensor_slices([f"test_parcel/train/{val_df['gtu_ids'][i]}.png" for i in val_df.index])
+val_y = tf.data.Dataset.from_tensor_slices([f"test_parcel/train_labels/{val_df['gtu_ids'][i]}.png" for i in val_df.index])
+
+val_x = val_x.map(load_image)
+val_x = val_x.map(lambda x: tf.ensure_shape(x, [256, 256, 3]))
+
+val_y = val_y.map(load_image)
+val_y = val_y.map(lambda x: tf.ensure_shape(x, [256, 256, 3]))
 
 
-train_labels = tf.data.Dataset.from_tensor_slices(y_train)
-val_labels = tf.data.Dataset.from_tensor_slices(y_val)
-
-train = tf.data.Dataset.zip((train_images, train_labels))
+train = tf.data.Dataset.zip((train_x, train_y))
 train = train.shuffle(5000)
 train = train.batch(8)
 train = train.prefetch(4)
-val = tf.data.Dataset.zip((val_images, val_labels))
+val = tf.data.Dataset.zip((val_x, val_y))
 val = val.shuffle(1000)
 val = val.batch(8)
 val = val.prefetch(4)
@@ -136,17 +150,7 @@ builder = SM_UNet_Builder(
     dropout=0,
 )
 
-model1 = builder.build_model()
-model = Sequential(
-    [
-        Input(shape=(256, 256, 3)),
-        model1,
-        Conv2D((2 * n_coords) + 6 + 2, 2, 2),
-        Flatten(),
-        Dense(((2 * n_coords) + 6 + 2), activation="relu"),
-    ]
-)
-
+model = builder.build_model()
 
 optimizer = tf.keras.optimizers.Adam(learning_rate=0.001, decay=0.0007)
 loss = tf.keras.losses.MeanSquaredError()
@@ -166,7 +170,7 @@ val_loss = H.history["val_loss"]
 df = pd.DataFrame(loss)
 df["loss"] = loss
 df["val_loss"] = val_loss
-df.to_csv("parcelUnet.csv")
-model.save("my_model")
-with tarfile.open("my_model.tar.gz", "w:gz") as tar:
-    tar.add("my_model", arcname=os.path.basename("my_model"))
+df.to_csv("parcel_Unet.csv")
+model.save("my_model_Unet")
+with tarfile.open("my_model_Unet.tar.gz", "w:gz") as tar:
+    tar.add("my_model_Unet", arcname=os.path.basename("my_model_Unet"))
