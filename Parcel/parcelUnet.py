@@ -3,10 +3,9 @@ import tarfile
 import gcsfs
 import pandas as pd
 import tensorflow as tf
-from tensorflow.keras.callbacks import EarlyStopping
-from helpers import load_image, mean_iou
 from dTurk.models.SM_UNet import SM_UNet_Builder
-from train_Unet import segmentation_loss
+from tensorflow.keras.callbacks import EarlyStopping
+from helpers import load_image, mean_iou, segmentation_loss
 
 FS = gcsfs.GCSFileSystem()
 try:
