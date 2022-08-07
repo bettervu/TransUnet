@@ -70,7 +70,7 @@ def find_area(coords):
 
 def load_image(x):
     byte_img = tf.io.read_file(x)
-    img = tf.io.decode_png(byte_img)
+    img = tf.io.decode_png(byte_img).astype(np.float32)
     return img
 
 
