@@ -124,7 +124,6 @@ val = val.prefetch(4)
 
 print("No error until now")
 
-
 builder = SM_UNet_Builder(
     encoder_name="efficientnetv2-l",
     input_shape=(256, 256, 3),
@@ -136,6 +135,7 @@ builder = SM_UNet_Builder(
     head_dropout=0,  # dropout at head
     dropout=0,
 )
+
 model1 = builder.build_model()
 model = Sequential(
     [

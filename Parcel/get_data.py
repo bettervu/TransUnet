@@ -18,8 +18,9 @@ from dTurk.utils.helpers import gsd_normalize
 
 FS = gcsfs.GCSFileSystem()
 
-with db_session() as sess:
-    records = sess.query(Gtu).offset(150000).limit(30000).all()
+save_limit = 5000
+start_at = 180000
+end_at = 280000
 
 
 def possible_image_location(property_id, gtu_id):
@@ -102,12 +103,10 @@ def reshift_coords(img1, property_mask1, coords, init_gsd):
 
 def cleanup1(coords):
     point = 0
-    m = slope(coords[0][0], coords[0][1], coords[-1][0], coords[-1][1])
     d = distance(coords[0][0], coords[0][1], coords[-1][0], coords[-1][1])
     if d == 0:
         coords.pop()
     while point < len(coords) - 1:
-        m = slope(coords[point][0], coords[point][1], coords[point + 1][0], coords[point + 1][1])
         d = distance(coords[point][0], coords[point][1], coords[point + 1][0], coords[point + 1][1])
         if d < 3:
             coords.pop(point + 1)
@@ -121,7 +120,6 @@ def cleanup2(coords):
     cache_slope = 0
     while point < len(coords) - 1:
         m = slope(coords[point][0], coords[point][1], coords[point + 1][0], coords[point + 1][1])
-        d = distance(coords[point][0], coords[point][1], coords[point + 1][0], coords[point + 1][1])
         if abs(m) == abs(cache_slope):
             coords.pop(point)
         else:
@@ -149,6 +147,48 @@ def cleanup3(coords):
         else:
             point += 1
     return coords
+
+
+def sort_coords(coords):
+    dst = list(map(distance1, coords))
+    origin = dst.index(min(dst))
+    final_coords = coords[origin:] + coords[:origin]
+    return final_coords
+
+
+def interpolate(lol, n=20, t="same"):
+    if len(lol) == n:
+        return lol
+    elif len(lol) < n:
+        final_x = []
+        final_y = []
+        x = [point[0] for point in lol]
+        y = [point[1] for point in lol]
+        x.append(x[0])
+        y.append(y[0])
+        n_to_inter_most = int(n / len(lol))
+        n_to_inter_last = n % len(lol)
+        for x_r in range(len(x) - 1):
+            x1, y1, x2, y2 = x[x_r], y[x_r], x[x_r + 1], y[x_r + 1]
+            if x_r == len(x) - 2:
+                steps = np.linspace(0, 1, n_to_inter_most + n_to_inter_last + 1)
+            else:
+                steps = np.linspace(0, 1, n_to_inter_most + 1)
+            if t == "same":
+                current_x_to_interpolate = [x1] * len(steps)
+                current_y_to_interpolate = [y1] * len(steps)
+            else:
+                current_x_to_interpolate = [(x1 + (x2 - x1) * (step)) for step in steps]
+                current_y_to_interpolate = [(y1 + (y2 - y1) * (step)) for step in steps]
+            final_x.extend(current_x_to_interpolate[:-1])
+            final_y.extend(current_y_to_interpolate[:-1])
+        lol = np.array([np.array([final_x[pt], final_y[pt]]) for pt in range(len(final_x))])
+    return lol
+
+
+def distance1(l1, l2=[0, 0]):
+    d = ((l1[0] - l2[0]) ** 2 + (l1[1] - l2[1]) ** 2) ** 0.5
+    return d
 
 
 def add_geom_to_img(img, geom, color=(1,), thickness=-1, modify_img=True):
@@ -206,80 +246,109 @@ def get_property_info(
 import os
 
 os.makedirs("test_parcel/train", exist_ok=True)
+os.makedirs("test_parcel/train_labels", exist_ok=True)
 
+first = 1
+aggregate_missed = 0
+current_missed = 0
 
-for i, record in enumerate(records):
+gtu_ids = []
+before_cleanup_len = []
+after_cleanup_len = []
+transformed_coords = []
+
+with db_session() as sess:
+    records = sess.query(Gtu).offset(start_at).limit(save_limit).all()
+
+i = 0
+while i <= save_limit:
     print(i)
-    try:
-        gtu_id, property_id = record.id, record.property_id
-        gtu_id_dir, property_id_dir = possible_image_location(property_id=property_id, gtu_id=gtu_id)
-        img1 = open_image(gtu_id_dir, property_id_dir, "image.jpg")
 
+    if i == 0 or i < save_limit:
+        record = records[i]
         try:
-            if img1.shape[0] > 0:
-                not_null = True
+            gtu_id, property_id = record.id, record.property_id
+            gtu_id_dir, property_id_dir = possible_image_location(property_id=property_id, gtu_id=gtu_id)
+            img1 = open_image(gtu_id_dir, property_id_dir, "image.jpg")
+
+            try:
+                if img1.shape[0] > 0:
+                    not_null = True
+            except:
+                not_null = False
+                aggregate_missed += 1
+                current_missed += 1
+
+            if not_null:
+                if img1.shape[2] == 4:
+                    img1 = cv2.cvtColor(img1, cv2.COLOR_RGBA2RGB)
+                img2 = img1.copy()
+                lnglat_coords = [(coord["lng"], coord["lat"]) for coord in record.boundary_data["coords"]]
+                property_poly = coords_to_valid_poly(lnglat_coords)
+                property_poly, property_mask1, coords = get_property_info(
+                    bbox=record.bbox,
+                    image_shape=img1.shape,
+                    property_data=property_poly.wkt,
+                    input_image_type_id=record.input_image_type_id,
+                    input_image_provider_type_id=record.input_image_provider_type_id,
+                )
+                coords1 = coords[0]
+                coords2 = cleanup1(list(coords[0]))
+
+                img2, coords3 = reshift_coords(img1, property_mask1, coords2, record.gsd)
+                img2 = cv2.cvtColor(img2, cv2.COLOR_BGR2RGB)
+                labels = np.zeros_like(img2)
+                start_pad = cv2.findNonZero(img2[:, :, 0])[0]
+                end_pad = cv2.findNonZero(img2[:, :, 0])[-1]
+                labels[start_pad[0][1]:end_pad[0][1], start_pad[0][0]:end_pad[0][0], 2] = 255
+                labels = cv2.fillPoly(labels, [np.int32(coords3)], color=(0, 255, 0))
+                cv2.imwrite(f"test_parcel/train/{gtu_id}.png", img2)
+                cv2.imwrite(f"test_parcel/train_labels/{gtu_id}.png", labels)
+                gtu_ids.append(gtu_id)
+                before_cleanup_len.append(len(coords1))
+                after_cleanup_len.append(len(coords2))
+                transformed_coords.append(coords3)
         except:
-            not_null = False
-        if not_null:
-            if img1.shape[2] == 4:
-                img1 = cv2.cvtColor(img1, cv2.COLOR_RGBA2RGB)
-            img2 = img1.copy()
-            lnglat_coords = [(coord["lng"], coord["lat"]) for coord in record.boundary_data["coords"]]
-            property_poly = coords_to_valid_poly(lnglat_coords)
-            property_poly, property_mask1, coords = get_property_info(
-                bbox=record.bbox,
-                image_shape=img1.shape,
-                property_data=property_poly.wkt,
-                input_image_type_id=record.input_image_type_id,
-                input_image_provider_type_id=record.input_image_provider_type_id,
-            )
-            coords1 = coords[0]
-            coords2 = cleanup1(list(coords[0]))
+            aggregate_missed += 1
+            current_missed += 1
+            print("hiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii biiiiiiiiiiiiiiiiiiiiiiiiiiatch ")
 
-            img2, coords3 = reshift_coords(img1, property_mask1, coords2, record.gsd)
-            img2 = cv2.cvtColor(img2, cv2.COLOR_BGR2RGB)
-            cv2.imwrite(f"test_parcel/train/{gtu_id}.png", img2)
-    except:
-        print("hiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii biiiiiiiiiiiiiiiiiiiiiiiiiiatch ")
+        i += 1
+    else:
+        print(f"Total missed so far: {aggregate_missed}")
+        print(f"Missed in this loop: {current_missed}")
+        df = pd.DataFrame()
 
+        df["gtu_ids"] = gtu_ids
+        df["before_cleanup_len"] = before_cleanup_len
+        df["after_cleanup_len"] = after_cleanup_len
+        df["transformed_coords"] = transformed_coords
 
-def sort_coords(coords):
-    dst = list(map(distance, coords))
-    origin = dst.index(min(dst))
-    final_coords = coords[origin:] + coords[:origin]
-    return final_coords
+        df["coords_vals"] = df["transformed_coords"].apply(lambda x: [list(i) for i in x])
 
+        df["sorted_coords"] = df["coords_vals"].apply(sort_coords)
+        df["interpolate_linear"] = df["sorted_coords"].apply(lambda x: interpolate(x, t="linear"))
+        df["interpolate_linear"] = df["interpolate_linear"].apply(lambda x: [list(i) for i in x])
 
-def interpolate(lol, n=20, t="same"):
-    if len(lol) == n:
-        return lol
-    elif len(lol) < n:
-        final_x = []
-        final_y = []
-        x = [point[0] for point in lol]
-        y = [point[1] for point in lol]
-        x.append(x[0])
-        y.append(y[0])
-        n_to_inter_most = int(n / len(lol))
-        n_to_inter_last = n % len(lol)
-        for x_r in range(len(x) - 1):
-            x1, y1, x2, y2 = x[x_r], y[x_r], x[x_r + 1], y[x_r + 1]
-            if x_r == len(x) - 2:
-                steps = np.linspace(0, 1, n_to_inter_most + n_to_inter_last + 1)
-            else:
-                steps = np.linspace(0, 1, n_to_inter_most + 1)
-            if t == "same":
-                current_x_to_interpolate = [x1] * len(steps)
-                current_y_to_interpolate = [y1] * len(steps)
-            else:
-                current_x_to_interpolate = [(x1 + (x2 - x1) * (step)) for step in steps]
-                current_y_to_interpolate = [(y1 + (y2 - y1) * (step)) for step in steps]
-            final_x.extend(current_x_to_interpolate[:-1])
-            final_y.extend(current_y_to_interpolate[:-1])
-        lol = np.array([np.array([final_x[pt], final_y[pt]]) for pt in range(len(final_x))])
-    return lol
+        df.to_csv(f"dataset{first}.csv", index=None)
+        print(f"dataset {first} saved!")
+
+        first += 1
+        gtu_ids = []
+        before_cleanup_len = []
+        after_cleanup_len = []
+        transformed_coords = []
+        start_at += save_limit
+        i = 0
+        current_missed = 0
+
+        with db_session() as sess:
+            records = sess.query(Gtu).offset(start_at).limit(save_limit).all()
 
 
-def distance(l1, l2=[0, 0]):
-    d = ((l1[0] - l2[0]) ** 2 + (l1[1] - l2[1]) ** 2) ** 0.5
-    return d
+
+        if start_at == end_at:
+            print("Ending")
+            break
+
+
