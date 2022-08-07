@@ -94,15 +94,15 @@ metric = WeightedMeanIoU(
         )
 
 model = builder.build_model()
-model.compile(optimizer='adam', loss=l, metrics=metric)
+model.compile(optimizer='adam', loss=BinaryFocalLoss(gamma=2), metrics=metric)
 
 callbacks = []
-early_stopping = EarlyStopping(monitor="val_loss", mode="min", verbose=1, patience=20)
+early_stopping = EarlyStopping(monitor="val_loss", mode="min", verbose=1, patience=5)
 callbacks.append(early_stopping)
 
 
 history = model.fit(
-    train, epochs=1, validation_data=val, callbacks=callbacks
+    train, epochs=10, validation_data=val, callbacks=callbacks
 )
 
 iou = history.history["wt_mean_iou"]
