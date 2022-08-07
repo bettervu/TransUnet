@@ -6,6 +6,7 @@ import tensorflow as tf
 from dTurk.models.SM_UNet import SM_UNet_Builder
 from tensorflow.keras.callbacks import EarlyStopping
 from helpers import load_image, mean_iou, segmentation_loss
+from focal_loss import BinaryFocalLoss
 
 from dTurk.models.sm_models.losses import DiceLoss
 from dTurk.metrics import WeightedMeanIoU
@@ -113,7 +114,7 @@ metric = WeightedMeanIoU(
         )
 
 model = builder.build_model()
-model.compile(optimizer='adam', loss=loss, metrics=metric)
+model.compile(optimizer='adam', loss=BinaryFocalLoss(gamma=2), metrics=metric)
 
 callbacks = []
 early_stopping = EarlyStopping(monitor="val_loss", mode="min", verbose=1, patience=20)
