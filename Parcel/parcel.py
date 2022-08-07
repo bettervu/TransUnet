@@ -15,7 +15,7 @@ from dTurk.models.SM_UNet import SM_UNet_Builder
 FS = gcsfs.GCSFileSystem()
 try:
     gpus = tf.config.list_physical_devices("GPU")
-    tf.config.set_visible_devices(gpus[1], "GPU")
+    tf.config.set_visible_devices(gpus[2], "GPU")
 except:
     print("Gpus not found")
 
