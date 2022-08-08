@@ -101,7 +101,7 @@ callbacks.append(early_stopping)
 H = model.fit(
     train,
     validation_data=(val),
-    epochs=10,
+    epochs=2,
     verbose=1,
     callbacks=callbacks,
 )
