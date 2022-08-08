@@ -27,7 +27,7 @@ df = pd.read_csv("dataset.csv")
 
 df["new32"] = df["new32"].apply(eval)
 
-df.head(30000)
+df = df.head(30000)
 
 files = os.listdir("test_parcel/train")
 try:
