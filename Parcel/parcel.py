@@ -20,12 +20,12 @@ except:
     print("Gpus not found")
 
 
-n_coords = 32
+n_coords = 16
 
 
 df = pd.read_csv("dataset.csv")
 
-df["new32"] = df["new32"].apply(eval)
+df[f"new{n_coords}"] = df[f"new{n_coords}"].apply(eval)
 
 df = df.head(50000)
 
