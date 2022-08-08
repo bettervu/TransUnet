@@ -20,7 +20,7 @@ except:
     print("Gpus not found")
 
 
-n_coords = 16
+n_coords = 32
 
 
 df = pd.read_csv("dataset.csv")
