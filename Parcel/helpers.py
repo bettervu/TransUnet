@@ -95,7 +95,7 @@ def four_corners(lol):
     bottom_left = lol[bottom_left_dst.index(min(bottom_left_dst))]
     bottom_right = lol[bottom_right_dst.index(min(bottom_right_dst))]
     top_right = lol[top_right_dst.index(min(top_right_dst))]
-    return np.array([top_left, bottom_left, bottom_right, top_right, top_left])
+    return np.array([top_left, bottom_left, bottom_right, top_right])
 
 
 def eight_corners(lol):
@@ -116,7 +116,7 @@ def eight_corners(lol):
     top_right = lol[top_right_dst.index(min(top_right_dst))]
     top_center = lol[top_center_dst.index(min(top_center_dst))]
     return np.array(
-        [top_left, left_center, bottom_left, bottom_center, bottom_right, right_center, top_right, top_center, top_left]
+        [top_left, left_center, bottom_left, bottom_center, bottom_right, right_center, top_right, top_center]
     )
 
 
@@ -170,8 +170,7 @@ def sixteen_corners(lol):
             top_right,
             top_center_half_max,
             top_center,
-            top_center_half_min,
-            top_left,
+            top_center_half_min
         ]
     )
 
@@ -276,7 +275,6 @@ def thirtytwo_corners(lol):
             top_center_half_min_2,
             top_center_half_min_1,
             top_center_half_min_3,
-            top_left,
         ]
     )
 
@@ -476,7 +474,6 @@ def sixtyfour_corners(lol):
             top_center_half_min_5,
             top_center_half_min_3,
             top_center_half_min_7,
-            top_left,
         ]
     )
 
