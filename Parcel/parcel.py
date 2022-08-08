@@ -51,8 +51,8 @@ val_images = tf.data.Dataset.from_tensor_slices([f"test_parcel/train/{val_df['gt
 val_images = val_images.map(load_image)
 val_images = val_images.map(lambda x: tf.ensure_shape(x, [256, 256, 3]))
 
-y_train = np.array(train_df["new32"].to_list())
-y_val = np.array(val_df["new32"].to_list())
+y_train = np.array(train_df[f"new{n_coords}"].to_list())
+y_val = np.array(val_df[f"new{n_coords}"].to_list())
 
 
 train_labels = tf.data.Dataset.from_tensor_slices(y_train)
