@@ -27,7 +27,7 @@ df = pd.read_csv("dataset.csv")
 
 df[f"new{n_coords}"] = df[f"new{n_coords}"].apply(eval)
 
-df = df.head(50000)
+# df = df.head(50000)
 
 files = os.listdir("test_parcel/train")
 try:
@@ -102,7 +102,7 @@ callbacks.append(early_stopping)
 H = model.fit(
     train,
     validation_data=(val),
-    epochs=1,
+    epochs=2,
     verbose=1,
     callbacks=callbacks,
 )
