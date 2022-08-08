@@ -60,11 +60,11 @@ val_labels = tf.data.Dataset.from_tensor_slices(y_val)
 
 train = tf.data.Dataset.zip((train_images, train_labels))
 train = train.shuffle(5000)
-train = train.batch(8)
+train = train.batch(16)
 train = train.prefetch(4)
 val = tf.data.Dataset.zip((val_images, val_labels))
 val = val.shuffle(1000)
-val = val.batch(8)
+val = val.batch(16)
 val = val.prefetch(4)
 
 print("No error until now")
