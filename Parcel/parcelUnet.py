@@ -55,7 +55,7 @@ val_images = tf.data.Dataset.from_tensor_slices([f"test_parcel/train/{val_df['gt
 val_labels = tf.data.Dataset.from_tensor_slices([f"test_parcel/train_labels/{val_df['gtu_ids'][i]}.png" for i in val_df.index])
 # val_labels = val_labels.map(load_image)
 
-train, val = create_dataset(train_images, val_images, train_augmentation="blah")
+train, val = create_dataset(train_images, val_images, train_augmentation="dTurk/dTurk/augmentation/configs/light.yaml")
 
 
 builder = SM_UNet_Builder(
