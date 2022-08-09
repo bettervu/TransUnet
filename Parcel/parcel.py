@@ -8,7 +8,7 @@ from tensorflow.keras import Sequential
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.layers import Conv2D, Dense, Dropout, Flatten, Input, Permute, Reshape
 
-from helpers import load_image
+from dTurk.generators.tf_data import TFDataBase
 
 from dTurk.models.SM_UNet import SM_UNet_Builder
 
@@ -44,10 +44,10 @@ val_df = df.drop(train_df.index)
 train_images = tf.data.Dataset.from_tensor_slices(
     [f"test_parcel/train/{train_df['gtu_ids'][i]}.png" for i in train_df.index]
 )
-train_images = train_images.map(load_image)
+train_images = train_images.map(TFDataBase.load_image)
 train_images = train_images.map(lambda x: tf.ensure_shape(x, [256, 256, 3]))
 val_images = tf.data.Dataset.from_tensor_slices([f"test_parcel/train/{val_df['gtu_ids'][i]}.png" for i in val_df.index])
-val_images = val_images.map(load_image)
+val_images = val_images.map(TFDataBase.load_image)
 val_images = val_images.map(lambda x: tf.ensure_shape(x, [256, 256, 3]))
 
 y_train = np.array(train_df[f"new{n_coords}"].to_list())
