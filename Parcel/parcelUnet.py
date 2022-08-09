@@ -9,6 +9,7 @@ from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.layers import Conv2D, Dense, Dropout, Flatten, Input, Permute, Reshape
 from dTurk.models.SM_UNet import SM_UNet_Builder
 
+from train_helpers import create_dataset
 from helpers import load_image
 
 from dTurk.models.SM_UNet import SM_UNet_Builder
@@ -46,28 +47,21 @@ val_df = df.drop(train_df.index)
 train_images = tf.data.Dataset.from_tensor_slices(
     [f"test_parcel/train/{train_df['gtu_ids'][i]}.png" for i in train_df.index]
 )
-train_images = train_images.map(load_image)
+# train_images = train_images.map(load_image)
 
 train_labels = tf.data.Dataset.from_tensor_slices(
     [f"test_parcel/train_labels/{train_df['gtu_ids'][i]}.png" for i in train_df.index]
 )
-train_labels = train_labels.map(load_image)
+# train_labels = train_labels.map(load_image)
 
 val_images = tf.data.Dataset.from_tensor_slices([f"test_parcel/train/{val_df['gtu_ids'][i]}.png" for i in val_df.index])
-val_images = val_images.map(load_image)
+# val_images = val_images.map(load_image)
 
 val_labels = tf.data.Dataset.from_tensor_slices([f"test_parcel/train_labels/{val_df['gtu_ids'][i]}.png" for i in val_df.index])
-val_labels = val_labels.map(load_image)
+# val_labels = val_labels.map(load_image)
 
+train, val = create_dataset(train_images, val_images, train_augmentation="blah")
 
-train = tf.data.Dataset.zip((train_images, train_labels))
-train = train.shuffle(5000)
-train = train.batch(16)
-train = train.prefetch(4)
-val = tf.data.Dataset.zip((val_images, val_labels))
-val = val.shuffle(1000)
-val = val.batch(16)
-val = val.prefetch(4)
 
 builder = SM_UNet_Builder(
     encoder_name='efficientnetv2-l',
