@@ -5,6 +5,9 @@ import cv2
 import numpy as np
 import tensorflow as tf
 from tensorflow.keras import backend as K
+from dTurk.generators import SemsegData
+from dTurk.builders import model_builder
+from dTurk.augmentation.transforms import get_train_transform_policy, get_validation_transform_policy
 
 
 def extend_list(lol):
@@ -554,3 +557,36 @@ def segmentation_loss(y_true, y_pred):
 # # df = df[(df["poly_area_percent"] <= 30)]
 #
 # df["new"] = df.apply(lambda x: np.concatenate((x["bbox"], x["center"], x["edges"])), axis=1)
+
+
+def create_dataset(train_input_names, val_input_names, train_augmentation=None, val_augmentation=None):
+    train_data = SemsegData(
+        subset="train",
+        transform_policy=get_train_transform_policy(augmentation_file=train_augmentation),
+        preprocess=model_builder.get_preprocessing("s"),
+        layer_colors=[[0, 0, 0], [255, 0, 0], [0, 255, 0]],
+        use_mixup=False,
+        use_sample_weights=False,
+        use_distance_weights=False,
+    )
+    val_data = SemsegData(
+        subset="val",
+        transform_policy=val_augmentation,
+        preprocess=model_builder.get_preprocessing("s"),
+        layer_colors=[[0, 0, 0], [255, 0, 0], [0, 255, 0]],
+        use_sample_weights=False,
+        use_distance_weights=False,
+    )
+
+    image_shape = (256, 256, 3)
+    label_shape = (
+        256,
+        256,
+        3,
+    )
+    shapes = [image_shape, label_shape]
+
+    train_ds_batched = train_data.get_tf_data(batch_size=16, input_names=train_input_names, shapes=shapes)
+    val_ds_batched = val_data.get_tf_data(batch_size=16, input_names=val_input_names, shapes=shapes)
+
+    return train_ds_batched, val_ds_batched

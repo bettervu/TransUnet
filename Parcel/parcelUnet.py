@@ -1,16 +1,11 @@
 import os
 import tarfile
 import gcsfs
-import numpy as np
 import pandas as pd
 import tensorflow as tf
-from tensorflow.keras import Sequential
 from tensorflow.keras.callbacks import EarlyStopping
-from tensorflow.keras.layers import Conv2D, Dense, Dropout, Flatten, Input, Permute, Reshape
-from dTurk.models.SM_UNet import SM_UNet_Builder
 
-from train_helpers import create_dataset
-from helpers import load_image
+from helpers import create_dataset
 
 from dTurk.models.SM_UNet import SM_UNet_Builder
 from dTurk.models.sm_models.losses import DiceLoss
@@ -108,3 +103,5 @@ df.to_csv("parcelUnet.csv")
 model.save("my_model_Unet")
 with tarfile.open("my_model_Unet.tar.gz", "w:gz") as tar:
     tar.add("my_model_Unet", arcname=os.path.basename("my_model_Unet"))
+
+
