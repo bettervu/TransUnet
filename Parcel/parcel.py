@@ -8,8 +8,8 @@ from tensorflow.keras import Sequential
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.layers import Conv2D, Dense, Dropout, Flatten, Input, Permute, Reshape
 
-tf.enable_eager_execution()
 # from dTurk.generators.tf_data import TFDataBase
+tf.config.run_functions_eagerly(True)
 
 from helpers import load_image
 
