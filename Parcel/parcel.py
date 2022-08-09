@@ -20,7 +20,7 @@ except:
     print("Gpus not found")
 
 
-n_coords = 16
+n_coords = 32
 
 
 df = pd.read_csv("dataset.csv")
@@ -102,7 +102,7 @@ callbacks.append(early_stopping)
 H = model.fit(
     train,
     validation_data=(val),
-    epochs=1,
+    epochs=2,
     verbose=1,
     callbacks=callbacks,
 )
