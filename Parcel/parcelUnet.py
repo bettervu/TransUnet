@@ -10,7 +10,7 @@ from helpers import create_dataset
 from dTurk.models.SM_UNet import SM_UNet_Builder
 from dTurk.models.sm_models.losses import DiceLoss
 from dTurk.metrics import WeightedMeanIoU
-from dTurk.trainers.layered_trainer import LayeredTrainer
+
 FS = gcsfs.GCSFileSystem()
 try:
     gpus = tf.config.list_physical_devices("GPU")
@@ -42,7 +42,7 @@ val_df = df.drop(train_df.index)
 train_images = [f"test_parcel/train/{train_df['gtu_ids'][i]}.png" for i in train_df.index]
 val_images = [f"test_parcel/train/{val_df['gtu_ids'][i]}.png" for i in val_df.index]
 
-train, val = LayeredTrainer.create_dataset(train_images, val_images)
+train, val = create_dataset(train_images, val_images, train_augmentation="dTurk/dTurk/augmentation/configs/light.yaml")
 
 
 builder = SM_UNet_Builder(
