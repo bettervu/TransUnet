@@ -71,10 +71,11 @@ def find_area(coords):
     return len((np.where(img == 255))[0])
 
 
-def load_image(x):
-    byte_img = tf.io.read_file(x)
-    img = tf.cast(tf.io.decode_png(byte_img), tf.float32)
-    return img
+def load_image(filename):
+    img = tf.io.read_file(filename)
+    image_decoded = tf.image.decode_png(img, channels=3)
+    image_np = image_decoded.numpy()
+    return image_np
 
 
 def distance(l1, l2=[0, 0]):
