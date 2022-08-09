@@ -8,7 +8,8 @@ from tensorflow.keras import Sequential
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.layers import Conv2D, Dense, Dropout, Flatten, Input, Permute, Reshape
 
-from dTurk.generators.tf_data import TFDataBase
+# from dTurk.generators.tf_data import TFDataBase
+from helpers import load_image
 
 from dTurk.models.SM_UNet import SM_UNet_Builder
 
