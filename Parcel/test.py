@@ -1,159 +1,224 @@
-import math
-import operator
 import os
+import random
 import tarfile
-from functools import reduce
-from random import sample
-
-import gcsfs
 import numpy as np
 import pandas as pd
 import tensorflow as tf
+from dTurk.models.SM_UNet import SM_UNet_Builder
+from dTurk.generators import SemsegData
+from dTurk.builders import model_builder
+from dTurk.augmentation.transforms import get_train_transform_policy, get_validation_transform_policy
+from dTurk.models.sm_models.losses import DiceLoss
+from dTurk.metrics import WeightedMeanIoU
 from tensorflow.keras import Sequential
-from tensorflow.keras.applications import ResNet152V2
-from tensorflow.keras.callbacks import EarlyStopping
-from tensorflow.keras.layers import Conv2D, Dropout, Input, Reshape
-
-FS = gcsfs.GCSFileSystem()
-
-try:
-    gpus = tf.config.list_physical_devices("GPU")
-    tf.config.set_visible_devices(gpus[1], "GPU")
-except:
-    print("Gpus not found")
+from tensorflow.keras.layers import Conv2D, Dense, Dropout, Flatten, Input, Permute, Reshape
 
 
-def interpolate(lol, n=20, t="linear"):
-    if len(lol) == n:
-        return lol
-    elif len(lol) < n:
-        final_x = []
-        final_y = []
-        x = [point[0] for point in lol]
-        y = [point[1] for point in lol]
-        x.append(x[0])
-        y.append(y[0])
-        n_to_inter_most = int(n / len(lol))
-        n_to_inter_last = n % len(lol)
-        for x_r in range(len(x) - 1):
-            x1, y1, x2, y2 = x[x_r], y[x_r], x[x_r + 1], y[x_r + 1]
-            if x_r == len(x) - 2:
-                steps = np.linspace(0, 1, n_to_inter_most + n_to_inter_last + 1)
-            else:
-                steps = np.linspace(0, 1, n_to_inter_most + 1)
-            if t == "same":
-                current_x_to_interpolate = [x1] * len(steps)
-                current_y_to_interpolate = [y1] * len(steps)
-            else:
-                current_x_to_interpolate = [(x1 + (x2 - x1) * (step)) for step in steps]
-                current_y_to_interpolate = [(y1 + (y2 - y1) * (step)) for step in steps]
-            final_x.extend(current_x_to_interpolate[:-1])
-            final_y.extend(current_y_to_interpolate[:-1])
-        lol = np.array([np.array([final_x[pt], final_y[pt]]) for pt in range(len(final_x))])
-    return lol
+ds_location = os.getenv("LOCAL_BP_PATH_REMOTE") + "/datasets/Parcel/"
+md_location = os.getenv("LOCAL_BP_PATH_REMOTE") + "/dTurk/classifiers/"
 
 
-def flatten(lol):
-    lol = np.array([(np.array(i).flatten()) for i in lol]).flatten()
-    return lol
+def load_image(filename):
+    img = tf.io.read_file(filename)
+    image_decoded = tf.image.decode_png(img, channels=3)
+    return image_decoded
 
 
-def distance(l1, l2=[0, 0]):
-    d = ((l1[0] - l2[0]) ** 2 + (l1[1] - l2[1]) ** 2) ** 0.5
-    return d
+def get_gpu(gpu_no):
+    try:
+        gpus = tf.config.list_physical_devices("GPU")
+        tf.config.set_visible_devices(gpus[gpu_no], "GPU")
+    except Exception as e:
+        print(f"Gpus not found: {e}")
 
 
-def sort_coords(coords):
-    dst = list(map(distance, coords))
-    origin = dst.index(min(dst))
-    final_coords = coords[origin:] + coords[:origin]
-    return final_coords
+def remove_hidden_files(images):
+    try:
+        images.remove(".DS_Store")
+    except Exception as e:
+        print(f"No hidden file encountered: {e}")
+    return images
 
 
-def load_image(x):
-    byte_img = tf.io.read_file(x)
-    img = tf.io.decode_jpeg(byte_img)
-    return img
+def return_valid_dataset(name):
+    images = os.listdir("test_parcel/train")
+    images = remove_hidden_files(images)
+    images = [int(image.split(".")[0]) for image in images]
+
+    df = pd.read_csv("dataset.csv", index_col=None)
+    allowable_gtus = list(set(images).intersection(set(df["gtu_ids"])))
+    df = df[df["gtu_ids"].isin(allowable_gtus)]
+    df["gtu_imgs"] = df["gtu_ids"].apply(lambda x: f"test_parcel/train/{x}.png")
+    return df
 
 
-df = pd.read_csv("dataset.csv")
-df["coords_vals"] = df["coords_vals"].apply(eval)
+def train_test_split(df):
+    train_df = df.sample(frac=0.8)
+    val_df = df.drop(train_df.index)
+    return train_df, val_df
 
-df = df[df["after_cleanup_len"] <= 20]
-files = os.listdir("test_parcel/train")
-files = [eval(file.split(".")[0]) for file in files]
-allowable_train_gtus = list(set(files).intersection(set(df["gtu_ids"])))
-df = df[df['gtu_ids'].isin(allowable_train_gtus)]
-df["sorted_coords"] = df["coords_vals"].apply(sort_coords)
-df["interpolate_same"] = df["sorted_coords"].apply(interpolate)
-df["interpolate_linear"] = df["sorted_coords"].apply(lambda x: interpolate(x, t="linear"))
-df["interpolate_same"] = df["interpolate_same"].apply(flatten)
-df["interpolate_linear"] = df["interpolate_linear"].apply(flatten)
-
-train_df = df.sample(frac=0.8)
-val_df = df.drop(train_df.index)
-
-train_images = tf.data.Dataset.from_tensor_slices([f"test_parcel/train/{train_df['gtu_ids'][i]}.png" for i in train_df.index])
-train_images = train_images.map(load_image)
-train_images = train_images.map(lambda x: tf.ensure_shape(x, [256, 256, 3]))
-
-val_images = tf.data.Dataset.from_tensor_slices([f"test_parcel/train/{val_df['gtu_ids'][i]}.png" for i in val_df.index])
-val_images = val_images.map(load_image)
-val_images = val_images.map(lambda x: tf.ensure_shape(x, [256, 256, 3]))
-
-y_train = np.array(train_df["interpolate_same"].to_list())
-y_val = np.array(val_df["interpolate_same"].to_list())
-
-train_labels = tf.data.Dataset.from_tensor_slices(y_train)
-val_labels = tf.data.Dataset.from_tensor_slices(y_val)
-
-train = tf.data.Dataset.zip((train_images, train_labels))
-train = train.shuffle(5000)
-train = train.batch(16)
-train = train.prefetch(4)
-
-val = tf.data.Dataset.zip((val_images, val_labels))
-val = val.shuffle(1000)
-val = val.batch(16)
-val = val.prefetch(4)
-
-model = Sequential(
-    [
-        Input(shape=(256, 256, 3)),
-        ResNet152V2(include_top=False, input_shape=(256, 256, 3)),
-        Conv2D(512, 3, padding="same", activation="relu"),
-        Conv2D(512, 3, padding="same", activation="relu"),
-        Conv2D(256, 3, 2, padding="same", activation="relu"),
-        Conv2D(256, 2, 2, activation="relu"),
-        Dropout(0.05),
-        Conv2D(40, 2, 2),
-        Reshape((40,)),
-    ]
-)
-
-optimizer = tf.keras.optimizers.Adam(learning_rate=0.001, decay=0.0007)
-loss = tf.keras.losses.MeanAbsoluteError()
-
-model.compile(optimizer, loss)
-
-callbacks = []
-early_stopping = EarlyStopping(monitor="val_loss", mode="min", verbose=1, patience=20)
-
-callbacks.append(early_stopping)
-
-H = model.fit(train, validation_data=val, epochs=15, verbose=1, callbacks=callbacks)
+def load_images_df(df, crop_size):
+    images = tf.data.Dataset.from_tensor_slices(df["gtu_imgs"].to_list())
+    images = images.map(load_image)
+    images = images.map(lambda x: tf.ensure_shape(x, [crop_size, crop_size, 3]))
+    return images
 
 
-loss = H.history["loss"]
-val_loss = H.history["val_loss"]
+def load_labels_df(df, n_coords):
+    y = np.array(df[f"edges{n_coords}"].apply(eval).to_list())
+    labels = tf.data.Dataset.from_tensor_slices(y)
+    return labels
 
-df = pd.DataFrame(loss)
-df["loss"] = loss
-df["val_loss"] = val_loss
 
-df.to_csv("parcelUnet.csv")
+def create_batched_ds(images, labels, batch_size):
+    ds = tf.data.Dataset.zip((images, labels))
+    ds = ds.shuffle(random.randint(1000, 10000))
+    ds = ds.batch(batch_size)
+    ds = ds.prefetch(4)
+    return ds
 
-model.save("my_model")
+def augment(subset, augmentation):
+    if augmentation:
+        if subset == "train":
+            return get_train_transform_policy(augmentation_file=augmentation)
+        return get_validation_transform_policy(augmentation_file=augmentation)
+    return
 
-with tarfile.open("my_model.tar.gz", "w:gz") as tar:
-    tar.add("my_model", arcname=os.path.basename("my_model"))
+def load_config(subset, augmentation):
+    data = SemsegData(
+        subset=subset,
+        transform_policy=augment(subset, augmentation),
+        preprocess=model_builder.get_preprocessing("s"),
+        layer_colors=[[0, 0, 0], [255, 0, 0], [0, 255, 0]],
+        use_mixup=False,
+        use_sample_weights=False,
+        use_distance_weights=False,
+    )
+    return data
+
+def shapes_all(crop_size):
+    image_shape = (crop_size, crop_size, 3)
+    label_shape = (crop_size, crop_size, 3)
+    shapes = [image_shape, label_shape]
+    return shapes
+
+def create_dataset_keypoint(df, n_coords, batch_size, crop_size):
+    train_df, val_df = train_test_split(df)
+
+    train_images = load_images_df(train_df, crop_size)
+    val_images = load_images_df(val_df, crop_size)
+
+    train_labels = load_labels_df(train_df, n_coords)
+    val_labels = load_labels_df(val_df, n_coords)
+
+    train = create_batched_ds(train_images, train_labels, batch_size)
+    val = create_batched_ds(val_images, val_labels, batch_size)
+
+    return train, val
+
+
+def create_dataset_semseg(df, train_augmentation, val_augmentation, crop_size, batch_size):
+    train_df, val_df = train_test_split(df)
+    train_data = load_config("train", train_augmentation)
+    val_data = load_config("val", val_augmentation)
+
+    shapes = shapes_all(crop_size)
+
+    train = train_data.get_tf_data(batch_size=batch_size, input_names=train_df["gtu_imgs"].to_list(), shapes=shapes)
+    val = val_data.get_tf_data(batch_size=batch_size, input_names=val_df["gtu_imgs"].to_list(), shapes=shapes)
+
+    return train, val
+
+
+def build_unet(crop_size):
+    builder = SM_UNet_Builder(
+        encoder_name="efficientnetv2-l",
+        input_shape=(crop_size, crop_size, 3),
+        num_classes=3,
+        activation="softmax",
+        train_encoder=False,
+        encoder_weights="imagenet",
+        decoder_block_type="upsampling",
+        head_dropout=0,
+        dropout=0,
+    )
+
+    unet = builder.build_model()
+
+    return unet
+
+
+def build_keypoint(n_coords, crop_size):
+    unet = build_unet(crop_size)
+
+    keypoint = Sequential(
+        [
+            Input(shape=(crop_size, crop_size, 3)),
+            unet,
+            Conv2D((2 * n_coords) + 6 + 2, 2, 2),
+            Flatten(),
+            Dense(((2 * n_coords)), activation="relu"),
+        ]
+    )
+
+    return keypoint
+
+
+def return_loss(loss):
+    if loss == "mse":
+        loss = tf.keras.losses.MeanSquaredError()
+    elif loss == "mae":
+        loss = tf.keras.losses.MeanAbsoluteError()
+    elif loss == "jaccard":
+        loss = DiceLoss(class_weights=[1, 1, 1], class_indexes=[0, 1, 2], per_image=False)
+    return loss
+
+def return_metric(metric):
+    if metric == "iou":
+        metric = WeightedMeanIoU(num_classes=3, class_weights=[1, 1, 1], name="wt_mean_iou")
+    return metric
+
+def save_model(name, model):
+    model.save(ds_location + '/' + name)
+
+    with tarfile.open(ds_location + '/' + name+".tar.gz", "w:gz") as tar:
+        tar.add(ds_location + '/' + name, arcname=os.path.basename(ds_location + '/' + name))
+
+
+def get_callbacks(self, df, batch_size ):
+    callbacks = []
+
+    step_size = int(2.0 * len(df) / batch_size)
+    callbacks.append(
+        CyclicLR(
+            base_lr=self.options["learning_rate"] / 10.0,
+            max_lr=self.options["learning_rate"],
+            step_size=step_size,
+            mode=self.options.get("clr_mode", "triangular2"),
+            cyclic_momentum=self.options["cyclic_momentum"],
+            max_momentum=self.options["momentum"],
+            base_momentum=self.options["momentum"] - 0.1,
+        )
+    )
+
+    callbacks.append(
+        EarlyStopping(monitor="val_loss", mode="min", verbose=1, patience=4)
+    )
+
+    callbacks.append(CSVLogger(os.path.join(self.log_path, "training.log"), append=True))
+
+    callbacks.append(
+        ModelCheckpoint(
+            filepath=os.path.join(self.log_path, "model.ckpt"),
+            monitor="val_loss",
+            mode="min",
+            save_best_only=True,
+            save_weights_only=False,
+            verbose=1,
+        )
+    )
+
+    callbacks.append(CustomTensorBoard(self.tensorboard_path, histogram_freq=1, update_freq=1))
+
+
+    return callbacks

@@ -3,10 +3,13 @@ import tarfile
 import gcsfs
 import numpy as np
 import pandas as pd
-import tensorflow as tf
+
 from tensorflow.keras import Sequential
 from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.layers import Conv2D, Dense, Dropout, Flatten, Input, Permute, Reshape
+
+import tensorflow.compat.v1 as tf
+tf.disable_v2_behavior()
 
 # from dTurk.generators.tf_data import TFDataBase
 
