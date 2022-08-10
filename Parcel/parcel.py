@@ -9,7 +9,6 @@ from tensorflow.keras.callbacks import EarlyStopping
 from tensorflow.keras.layers import Conv2D, Dense, Dropout, Flatten, Input, Permute, Reshape
 
 # from dTurk.generators.tf_data import TFDataBase
-tf.config.run_functions_eagerly(True)
 
 from helpers import load_image
 
@@ -43,6 +42,7 @@ df = df[df["gtu_ids"].isin(allowable_train_gtus)]
 train_df = df.sample(frac=0.8)
 val_df = df.drop(train_df.index)
 
+print(len(train_df))
 
 train_images = tf.data.Dataset.from_tensor_slices(
     [f"test_parcel/train/{train_df['gtu_ids'][i]}.png" for i in train_df.index]
