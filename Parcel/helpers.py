@@ -9,8 +9,6 @@ from dTurk.generators import SemsegData
 from dTurk.builders import model_builder
 from dTurk.augmentation.transforms import get_train_transform_policy, get_validation_transform_policy
 
-tf.config.run_functions_eagerly(True)
-
 
 def extend_list(lol):
     if len(lol) >= 20:
@@ -72,7 +70,7 @@ def find_area(coords):
     img = cv2.fillPoly(np.zeros((256, 256)), [np.int32(coords)], (255, 0, 0))
     return len((np.where(img == 255))[0])
 
-
+@tf.function 
 def load_image(filename):
     img = tf.io.read_file(filename)
     image_decoded = tf.image.decode_png(img, channels=3).numpy()
