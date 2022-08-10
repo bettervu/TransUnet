@@ -73,12 +73,8 @@ def find_area(coords):
 
 def load_image(filename):
     img = tf.io.read_file(filename)
-    image_decoded = tf.image.decode_png(img, channels=3)
+    image_decoded = np.array(tf.image.decode_png(img, channels=3))
     return image_decoded
-
-@tf.function
-def convert_np(tensor):
-    return tensor.numpy()
 
 
 def distance(l1, l2=[0, 0]):
