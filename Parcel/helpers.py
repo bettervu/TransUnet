@@ -70,10 +70,10 @@ def find_area(coords):
     img = cv2.fillPoly(np.zeros((256, 256)), [np.int32(coords)], (255, 0, 0))
     return len((np.where(img == 255))[0])
 
-@tf.function 
+@tf.function
 def load_image(filename):
     img = tf.io.read_file(filename)
-    image_decoded = tf.image.decode_png(img, channels=3).numpy()
+    image_decoded = tf.convert_to_tensor(tf.image.decode_png(img, channels=3)).numpy()
     return image_decoded
 
 
