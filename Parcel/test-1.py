@@ -6,11 +6,11 @@ from test import return_valid_dataset, get_gpu, create_dataset_semseg, build_une
 
 FS = gcsfs.GCSFileSystem()
 
-def train_semseg(name, model_name, epochs, train_augmentation, val_augmentation, batch_size, crop_size, optimizer, loss, metric, gpu_no):
+def train_semseg(epochs, train_augmentation, val_augmentation, batch_size, crop_size, optimizer, loss, metric, gpu_no):
 
     get_gpu(gpu_no)
 
-    df = return_valid_dataset(name)
+    df = return_valid_dataset()
 
     train, val = create_dataset_semseg(df, train_augmentation, val_augmentation, crop_size, batch_size)
 
@@ -31,11 +31,8 @@ def train_semseg(name, model_name, epochs, train_augmentation, val_augmentation,
         callbacks=callbacks,
     )
 
-    save_model(model_name, model)
 
 parser = argparse.ArgumentParser(description="Train keypoint")
-parser.add_argument("name", type=str)
-parser.add_argument("model_name", type=str)
 parser.add_argument("--train_augmentation", type=str, default=None)
 parser.add_argument("--val_augmentation", type=str, default=None)
 parser.add_argument("--epochs", type=int, default=1)
