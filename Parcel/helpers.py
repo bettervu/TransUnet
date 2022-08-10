@@ -76,6 +76,7 @@ def load_image(filename):
     image_decoded = tf.image.decode_png(img, channels=3)
     return image_decoded
 
+@tf.function
 def convert_np(tensor):
     return tensor.numpy()
 
