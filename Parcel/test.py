@@ -40,7 +40,7 @@ def remove_hidden_files(images):
     return images
 
 
-def return_valid_dataset(name):
+def return_valid_dataset():
     images = os.listdir("test_parcel/train")
     images = remove_hidden_files(images)
     images = [int(image.split(".")[0]) for image in images]
