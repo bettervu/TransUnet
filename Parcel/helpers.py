@@ -73,7 +73,7 @@ def find_area(coords):
 
 def load_image(filename):
     img = tf.io.read_file(filename)
-    image_decoded = np.array(tf.image.decode_png(img, channels=3))
+    image_decoded = tf.image.decode_png(img).numpy()
     return image_decoded
 
 
