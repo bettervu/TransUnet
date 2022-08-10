@@ -10,7 +10,7 @@ from tensorflow.keras.layers import Conv2D, Dense, Dropout, Flatten, Input, Perm
 
 # from dTurk.generators.tf_data import TFDataBase
 
-from helpers import load_image
+from helpers import load_image, convert_np
 
 from dTurk.models.SM_UNet import SM_UNet_Builder
 
@@ -48,9 +48,11 @@ train_images = tf.data.Dataset.from_tensor_slices(
     [f"test_parcel/train/{train_df['gtu_ids'][i]}.png" for i in train_df.index]
 )
 train_images = train_images.map(load_image)
+train_images = train_images.map(convert_np)
 train_images = train_images.map(lambda x: tf.ensure_shape(x, [256, 256, 3]))
 val_images = tf.data.Dataset.from_tensor_slices([f"test_parcel/train/{val_df['gtu_ids'][i]}.png" for i in val_df.index])
 val_images = val_images.map(load_image)
+val_images = val_images.map(convert_np)
 val_images = val_images.map(lambda x: tf.ensure_shape(x, [256, 256, 3]))
 
 y_train = np.array(train_df[f"new{n_coords}"].to_list())
