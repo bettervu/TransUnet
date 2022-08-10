@@ -9,6 +9,8 @@ from dTurk.generators import SemsegData
 from dTurk.builders import model_builder
 from dTurk.augmentation.transforms import get_train_transform_policy, get_validation_transform_policy
 
+tf.enable_eager_execution()
+
 
 def extend_list(lol):
     if len(lol) >= 20:
