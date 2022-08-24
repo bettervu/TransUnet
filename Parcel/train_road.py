@@ -31,6 +31,9 @@ except:
 train_images = ["Dataset_mod/train/" + i for i in train_images if not i.startswith("_")]
 val_images = ["Dataset_mod/val/" + i for i in val_images if not i.startswith("_")]
 
+train_images = ["Dataset_mod/train/" + i for i in train_images if i.endswith(".png")]
+val_images = ["Dataset_mod/val/" + i for i in val_images if i.endswith(".png")]
+
 train, val = create_dataset(train_images, val_images, train_augmentation="dTurk/dTurk/augmentation/configs/light.yaml")
 
 
