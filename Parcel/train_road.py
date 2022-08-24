@@ -37,8 +37,8 @@ builder = SM_UNet_Builder(
     dropout=0,
 )
 
-loss = DiceLoss(class_weights=[1, 1, 0], class_indexes=[0, 1, 2], per_image=False)
-metric = WeightedMeanIoU(num_classes=3, class_weights=[1, 1, 0], name="wt_mean_iou")
+loss = DiceLoss(class_weights=[1, 1, 1], class_indexes=[0, 1, 2], per_image=False)
+metric = WeightedMeanIoU(num_classes=3, class_weights=[1, 1, 1], name="wt_mean_iou")
 
 model = builder.build_model()
 model.compile(optimizer="adam", loss=loss, metrics=metric)
