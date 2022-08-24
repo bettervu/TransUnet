@@ -586,7 +586,7 @@ def create_dataset(train_input_names, val_input_names, train_augmentation=None, 
     )
     shapes = [image_shape, label_shape]
 
-    train_ds_batched = train_data.get_tf_data(batch_size=16, input_names=train_input_names, shapes=shapes)
-    val_ds_batched = val_data.get_tf_data(batch_size=16, input_names=val_input_names, shapes=shapes)
+    train_ds_batched = train_data.get_tf_data(batch_size=8, input_names=train_input_names, shapes=shapes)
+    val_ds_batched = val_data.get_tf_data(batch_size=8, input_names=val_input_names, shapes=shapes)
 
     return train_ds_batched, val_ds_batched
