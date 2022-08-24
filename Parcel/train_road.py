@@ -18,9 +18,18 @@ try:
 except:
     print("Gpus not found")
 
+train_images = os.listdir("Dataset_mod/train")
+val_images = os.listdir("Dataset_mod/val")
 
-train_images = ["Dataset_mod/train/" + i for i in os.listdir("Dataset_mod/train")]
-val_images = ["Dataset_mod/val/" + i for i in os.listdir("Dataset_mod/val")]
+try:
+    train_images.remove(".DS_Store")
+    val_images.remove(".DS_Store")
+    print("removed")
+except:
+    print("No hidden file encountered")
+
+train_images = ["Dataset_mod/train/" + i for i in train_images]
+val_images = ["Dataset_mod/val/" + i for i in val_images]
 
 train, val = create_dataset(train_images, val_images, train_augmentation="dTurk/dTurk/augmentation/configs/light.yaml")
 
