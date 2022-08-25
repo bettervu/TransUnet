@@ -35,7 +35,7 @@ except:
 train_images = ["Dataset_mod/train/" + i for i in train_images if i.endswith(".png")]
 val_images = ["Dataset_mod/val/" + i for i in val_images if i.endswith(".png")]
 
-train, val = create_dataset(train_images, val_images, train_augmentation="dTurk/dTurk/augmentation/configs/light.yaml")
+train, val = create_dataset(train_images, val_images, train_augmentation="dTurk/dTurk/augmentation/configs/one_of_aug_w_distortion.yaml")
 
 
 builder = SM_UNet_Builder(
@@ -64,7 +64,7 @@ callbacks.append(early_stopping)
 H = model.fit(
     train,
     validation_data=(val),
-    epochs=1,
+    epochs=3,
     verbose=1,
     callbacks=callbacks,
 )
