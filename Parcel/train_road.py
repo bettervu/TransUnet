@@ -10,6 +10,7 @@ from helpers import create_dataset
 from dTurk.models.SM_UNet import SM_UNet_Builder
 from dTurk.models.sm_models.losses import DiceLoss
 from dTurk.metrics import WeightedMeanIoU
+from  focal_loss import BinaryFocalLoss
 
 FS = gcsfs.GCSFileSystem()
 try:
@@ -50,6 +51,7 @@ builder = SM_UNet_Builder(
 )
 
 loss = DiceLoss(class_weights=[1, 1, 1], class_indexes=[0, 1, 2], per_image=False)
+loss = BinaryFocalLoss(gamma=2)
 metric = WeightedMeanIoU(num_classes=3, class_weights=[1, 1, 1], name="wt_mean_iou")
 
 model = builder.build_model()
